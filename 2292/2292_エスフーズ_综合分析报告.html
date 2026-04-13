@@ -135,32 +135,6 @@ body {
 .ico-blue   { background: #1a56db; color: #fff; }
 .ico-teal   { background: #0891b2; color: #fff; }
 
-/* ── KPI bar ── */
-#kpi-bar {
-  flex-shrink: 0;
-  background: #fff;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  padding: 0;
-}
-.kpi-cell {
-  padding: 10px 20px;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-.kpi-cell:last-child { border-right: none; }
-.kpi-cell .kl { font-size: 10px; color: var(--muted); font-weight: 600; }
-.kpi-cell .kv { font-size: 18px; font-weight: 700; color: var(--text); }
-.kpi-cell .ks { font-size: 10px; color: var(--muted); }
-.kv.up   { color: var(--green); }
-.kv.down { color: var(--red); }
-.kv.blue { color: var(--blue); }
-.kv.teal { color: var(--teal); }
 
 /* ── Tab bar ── */
 #tab-bar {
@@ -236,30 +210,18 @@ body {
 
 <!-- ── Executive Summary ── -->
 <div id="summary-panel">
-  <div class="sum-title">执行摘要 — 三份报告核心结论</div>
+  <div class="sum-title">一句话判断</div>
   <div class="sum-grid">
 
     <div class="sum-col">
       <div class="sum-col-title">
         <span class="dot" style="background:#60a5fa"></span>
-        基本信息
+        便宜吗？
       </div>
       <ul class="sum-list">
         <li>
-          <span class="ico ico-blue">基</span>
-          <span>日本最大肉类专业商社，垂直整合（牧场→屠宰→加工→批发→零售→餐饮），杂碎肉/副产品肉进口日本No.1</span>
-        </li>
-        <li>
-          <span class="ico ico-blue">营</span>
-          <span>FY2025营收4,445亿（+4.6%），连续增收；但营业利润仅51亿（-59.4%），ROE跌至2.2%，为历史低点</span>
-        </li>
-        <li>
-          <span class="ico ico-yellow">⚠</span>
-          <span>利润骤降主因：美国Aurora新工厂启动成本（321.6亿投资）、美国活牛价格飙升、新西兰育肥业务低迷叠加</span>
-        </li>
-        <li>
-          <span class="ico ico-blue">股</span>
-          <span>社长村上真之助持股25.3%，丸紅15.3%（第二大股东兼主要供应商）；创始家族控股，长期战略稳定</span>
+          <span class="ico ico-green">✓</span>
+          <span><strong style="color:#fff;">是，但有原因。</strong> PBR 0.44x，长期低于净资产；ROE结构性偏低（2.2%），是"便宜有理"的低估值，并非错误定价。若利润率修复，重估空间显著。</span>
         </li>
       </ul>
     </div>
@@ -267,24 +229,12 @@ body {
     <div class="sum-col">
       <div class="sum-col-title">
         <span class="dot" style="background:#10b981"></span>
-        财务分析
+        有变化吗？
       </div>
       <ul class="sum-list">
         <li>
-          <span class="ico ico-teal">估</span>
-          <span>PBR常年0.43~0.79x，当前0.44x，长期低于净资产价值；ROE低于资本成本（5~8%），是低估值的结构根源</span>
-        </li>
-        <li>
-          <span class="ico ico-green">✓</span>
-          <span>FY2026 Q3累计营业利润10.6亿已超年度指引10.0亿（达成率106%），净利润9.6亿超目标9.0亿（107%）</span>
-        </li>
-        <li>
-          <span class="ico ico-yellow">⚠</span>
-          <span>有息负债从98亿（FY2016）急增至445亿（FY2025），自由现金流持续为负，年均资本支出70~90亿</span>
-        </li>
-        <li>
-          <span class="ico ico-yellow">配</span>
-          <span>FY2025配当性向160%（赤字派息），DPS稳定在89日元；完全无自社株买入，资本回报全依赖股息</span>
+          <span class="ico ico-green">↑</span>
+          <span><strong style="color:#fff;">有，且已经发生。</strong> FY2025触底（营业利润-59%），FY2026 Q3累计利润+106%大幅回复，通期预测从75亿上调至88亿。业绩拐点已确认，不是预期，是现实。</span>
         </li>
       </ul>
     </div>
@@ -292,72 +242,16 @@ body {
     <div class="sum-col">
       <div class="sum-col-title">
         <span class="dot" style="background:#f59e0b"></span>
-        变化与催化剂
+        近期引爆点？
       </div>
       <ul class="sum-list">
         <li>
-          <span class="ico ico-green">↑</span>
-          <span>FY2026 Q3累计营业利益68亿（+106%），通期预测从75亿上调至88亿（EPS 252円），大幅回复已确认</span>
-        </li>
-        <li>
-          <span class="ico ico-green">★</span>
-          <span>最大正催化剂：Aurora Beef新工厂2025年4月启动运营，FY2027全年贡献将推动利润率向3%台回升</span>
-        </li>
-        <li>
-          <span class="ico ico-blue">配</span>
-          <span>DOE 3%股息方针确立，FY2026预期股息104円（+15円），以净资产为基准的稳定增配政策锁定长线资金</span>
-        </li>
-        <li>
-          <span class="ico ico-red">!</span>
-          <span>最大风险：日元升值（汇率调整▲278亿）＋美国活牛价格再度飙升；FY2027指引保守则有股价调整风险</span>
+          <span class="ico ico-yellow">★</span>
+          <span><strong style="color:#fff;">4月年度决算＋FY2027首次指引</strong>是最关键节点。Aurora新工厂2025年4月已启动，FY2027将首次全年贡献利润。指引积极→重新定价；指引保守→短期调整风险。同步关注日元走势与美国活牛价格。</span>
         </li>
       </ul>
     </div>
 
-  </div>
-</div>
-
-<!-- ── KPI bar ── -->
-<div id="kpi-bar">
-  <div class="kpi-cell">
-    <div class="kl">当前股价</div>
-    <div class="kv blue">¥3,045</div>
-    <div class="ks">週足終值</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kl">FY2025 营收</div>
-    <div class="kv">4,445亿</div>
-    <div class="ks">+4.6% YoY</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kl">FY2025 营业利润</div>
-    <div class="kv down">51亿</div>
-    <div class="ks">-59.4% YoY</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kl">FY2026 Q3累计营业利润</div>
-    <div class="kv up">68亿</div>
-    <div class="ks">+106% YoY</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kl">FY2026 通期预测（修正后）</div>
-    <div class="kv up">88亿</div>
-    <div class="ks">EPS 252円</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kl">PBR</div>
-    <div class="kv down">0.44x</div>
-    <div class="ks">历史低位区</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kl">股息（FY2026预期）</div>
-    <div class="kv up">104円</div>
-    <div class="ks">DOE 3%方针</div>
-  </div>
-  <div class="kpi-cell">
-    <div class="kl">自有资本比率</div>
-    <div class="kv teal">49.0%</div>
-    <div class="ks">Q3时点</div>
   </div>
 </div>
 
