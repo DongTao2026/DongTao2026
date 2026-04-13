@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2292 エスフーズ 分析看板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.2/dist/apexcharts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:   #1a56db;
+  --amber:  #f59e0b;
+  --green:  #10b981;
+  --red:    #ef4444;
+  --bg:     #f0f4f8;
+  --card:   #ffffff;
+  --border: #e2e8f0;
+  --text:   #1e293b;
+  --muted:  #64748b;
+  --nav-h:  60px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.insight {
+  margin-top: 14px;
+  padding: 9px 14px 9px 14px;
+  background: #f8faff;
+  border-left: 3px solid #1a56db;
+  border-radius: 0 6px 6px 0;
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.7;
+}
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--nav-h);
+  background: var(--blue);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+#navbar .brand {
+  color: #fff; font-weight: 700; font-size: 16px; white-space: nowrap;
+}
+#navbar .nav-links {
+  display: flex; gap: 4px; flex-wrap: wrap; overflow: hidden;
+}
+#navbar .nav-links a {
+  color: rgba(255,255,255,.85);
+  text-decoration: none; font-size: 12px;
+  padding: 4px 8px; border-radius: 4px;
+  white-space: nowrap;
+  transition: background .15s;
+}
+#navbar .nav-links a:hover { background: rgba(255,255,255,.2); }
+#kpi-strip {
+  margin-top: var(--nav-h);
+  background: #1e3a5f;
+  padding: 12px 20px;
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+}
+.kpi-item {
+  display: flex; flex-direction: column; align-items: center;
+  color: #fff; min-width: 90px;
+}
+.kpi-label { font-size: 11px; color: rgba(255,255,255,.7); }
+.kpi-value { font-size: 20px; font-weight: 700; }
+.kpi-sub   { font-size: 11px; color: rgba(255,255,255,.6); }
+.main { max-width: 1400px; margin: 0 auto; padding: 20px; }
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, #f8fafc, #fff);
+}
+.section-badge {
+  background: var(--blue); color: #fff;
+  border-radius: 20px; padding: 2px 10px;
+  font-size: 12px; font-weight: 700;
+  white-space: nowrap;
+}
+.card-title { font-size: 15px; font-weight: 700; }
+.card-title span { font-size: 12px; color: var(--muted); margin-left: 8px; font-weight: 400; }
+.card-body { padding: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+table.data-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+table.data-table th {
+  background: #f1f5f9; padding: 8px 12px;
+  text-align: center; font-weight: 600;
+  border-bottom: 2px solid var(--border);
+}
+table.data-table td {
+  padding: 7px 12px; text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+table.data-table tr:nth-child(even) td { background: #EBF3FA; }
+table.data-table tr:hover td { background: #f8fafc; }
+.neg { color: var(--red); }
+.pos { color: var(--green); }
+.prog-wrap { margin-bottom: 12px; }
+.prog-label { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+.prog-bar { height: 20px; background: #e2e8f0; border-radius: 6px; overflow: hidden; position: relative; }
+.prog-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: #fff; font-size: 12px; font-weight: 700; transition: width .4s; }
+.bs-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.bs-side { display: flex; flex-direction: column; gap: 2px; }
+.bs-block { border-radius: 4px; padding: 8px 10px; position: relative; cursor: default; transition: opacity .15s; }
+.bs-block:hover { opacity: .88; }
+.bs-block .bs-label { font-size: 12px; font-weight: 700; color: #fff; }
+.bs-block .bs-val { font-size: 11px; color: rgba(255,255,255,.85); }
+#chart-wf { min-height: 280px; }
+footer {
+  text-align: center; padding: 20px;
+  color: var(--muted); font-size: 12px;
+  border-top: 1px solid var(--border); margin-top: 10px;
+}
+@media(max-width:900px){
+  .grid-2 { grid-template-columns: 1fr; }
+  .bs-container { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav id="navbar">
+  <div class="brand">2292 エスフーズ</div>
+  <div class="nav-links">
+    <a href="#s1">①株価</a>
+    <a href="#s2">②業績</a>
+    <a href="#s3">③四半期</a>
+    <a href="#s4">④中計</a>
+    <a href="#s5">⑤利益率</a>
+    <a href="#s6">⑥バリュ</a>
+    <a href="#s7">⑦EPS/BPS</a>
+    <a href="#s8">⑧流動</a>
+    <a href="#s9">⑨負債</a>
+    <a href="#s10">⑩回転</a>
+    <a href="#s11">⑪CF</a>
+    <a href="#s12">⑫BS</a>
+    <a href="#s13">⑬PL</a>
+  </div>
+</nav>
+
+<!-- ── KPI Strip ── -->
+<div id="kpi-strip">
+  <div class="kpi-item">
+    <span class="kpi-label">株価 (直近)</span>
+    <span class="kpi-value">¥3,045.0</span>
+    <span class="kpi-sub">週足終値</span>
+  </div>
+  <div class="kpi-item">
+    <span class="kpi-label">売上高 (25/02)</span>
+    <span class="kpi-value">4,445億</span>
+    <span class="kpi-sub">Revenue</span>
+  </div>
+  <div class="kpi-item">
+    <span class="kpi-label">営業利益 (25/02)</span>
+    <span class="kpi-value">5.1億</span>
+    <span class="kpi-sub">Op Profit</span>
+  </div>
+  <div class="kpi-item">
+    <span class="kpi-label">純利益 (25/02)</span>
+    <span class="kpi-value">4.3億</span>
+    <span class="kpi-sub">Net Income</span>
+  </div>
+  <div class="kpi-item">
+    <span class="kpi-label">ROE (25/02)</span>
+    <span class="kpi-value">0.88%</span>
+    <span class="kpi-sub">Return on Equity</span>
+  </div>
+  <div class="kpi-item">
+    <span class="kpi-label">PBR (25/02期末)</span>
+    <span class="kpi-value">0.44x</span>
+    <span class="kpi-sub">Price/Book</span>
+  </div>
+  <div class="kpi-item">
+    <span class="kpi-label">配当 (25/02)</span>
+    <span class="kpi-value">¥89</span>
+    <span class="kpi-sub">DPS</span>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══ SECTION 1: 株価チャート ══ -->
+<div class="card" id="s1">
+  <div class="card-header">
+    <span class="section-badge">Section 1</span>
+    <span class="card-title">10年株価週足チャート <span>10-Year Weekly OHLC</span></span>
+  </div>
+  <div class="card-body">
+    <div id="chart-candle"></div>
+    <p class="insight">💡 过去10年股价在¥1,900〜¥4,500区间波动，2018年前后随盈利提升触及高点，此后受COVID影响及原材料成本上涨压力持续回调。当前¥3,045处于近年中等偏下水平，PBR仅0.44x。尽管25/02期营业利润骤降至5.1亿（历史最低），市场对于公司盈利能力恢复的预期正在博弈中，股价下方支撑来自稳定股息与低PBR的安全边际。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 2: 業績推移 ══ -->
+<div class="card" id="s2">
+  <div class="card-header">
+    <span class="section-badge">Section 2</span>
+    <span class="card-title">10年業績推移 <span>Revenue / Operating Profit / Net Income (億円)</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-perf" height="90"></canvas>
+    <p class="insight">💡 营收从3,143亿（16/02）持续增长至4,445亿（25/02），规模扩张显著；但营业利润却从峰值58.7亿（19/02）骤降至5.1亿（25/02），降幅超过90%。这一"增收减利"的结构反映了食肉流通业高度薄利的本质——毛利率仅约8%，且固定成本随规模扩大而刚性上升。原材料成本涨价无法及时转嫁，是近年利润率持续压缩的核心原因。如何在规模增长与利润率保护之间取得平衡，是中长期最重要的经营课题。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 3: 四半期進捗 ══ -->
+<div class="card" id="s3">
+  <div class="card-header">
+    <span class="section-badge">Section 3</span>
+    <span class="card-title">当年四半期進捗 FY2026/02 <span>Quarterly Progress</span></span>
+  </div>
+  <div class="card-body">
+    <div class="grid-2">
+      <div>
+        <h3 style="font-size:14px;margin-bottom:12px;">A) 四半期単独 (前期vs当期比較)</h3>
+        <canvas id="chart-qtr" height="160"></canvas>
+      </div>
+      <div>
+        <h3 style="font-size:14px;margin-bottom:12px;">B) 累計進捗 vs 通期予想</h3>
+        <div id="prog-section">
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">FY2026/02 通期予想: 売上4,580億 / 営業利益10.0億 / 経常利益13.0億 / 純利益9.0億</p>
+
+          <div style="margin-bottom:16px;">
+            <p style="font-weight:700;margin-bottom:6px;">売上高 (億円)</p>
+            <div class="prog-wrap"><div class="prog-label"><span>Q1累計 1,127億</span><span>1,127/4,580 = 24.6%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:24.6%;background:var(--blue);">24.6%</div></div></div>
+            <div class="prog-wrap"><div class="prog-label"><span>Q2累計 2,292億</span><span>2,292/4,580 = 50.0%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:50.0%;background:var(--blue);">50.0%</div></div></div>
+            <div class="prog-wrap"><div class="prog-label"><span>Q3累計 3,410億</span><span>3,410/4,580 = 74.5%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:74.5%;background:var(--blue);">74.5%</div></div></div>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <p style="font-weight:700;margin-bottom:6px;">営業利益 (億円)</p>
+            <div class="prog-wrap"><div class="prog-label"><span>Q1累計 4.5億</span><span>4.5/10.0 = 45.0%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:45.0%;background:var(--green);">45.0%</div></div></div>
+            <div class="prog-wrap"><div class="prog-label"><span>Q2累計 8.1億</span><span>8.1/10.0 = 81.0%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:81.0%;background:var(--green);">81.0%</div></div></div>
+            <div class="prog-wrap"><div class="prog-label"><span>Q3累計 10.6億</span><span>10.6/10.0 = 106.0%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--green);">106.0% ✓超過</div></div></div>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <p style="font-weight:700;margin-bottom:6px;">純利益 (億円)</p>
+            <div class="prog-wrap"><div class="prog-label"><span>Q1累計 4.1億</span><span>4.1/9.0 = 45.6%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:45.6%;background:var(--amber);">45.6%</div></div></div>
+            <div class="prog-wrap"><div class="prog-label"><span>Q2累計 7.3億</span><span>7.3/9.0 = 81.1%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:81.1%;background:var(--amber);">81.1%</div></div></div>
+            <div class="prog-wrap"><div class="prog-label"><span>Q3累計 9.6億</span><span>9.6/9.0 = 106.7%</span></div>
+              <div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--amber);">106.7% ✓超過</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;overflow-x:auto;">
+      <h3 style="font-size:14px;margin-bottom:10px;">FY2025 vs FY2026 四半期比較表</h3>
+      <table class="data-table">
+        <thead><tr>
+          <th>指標</th><th>FY25 Q1</th><th>FY25 Q2</th><th>FY25 Q3</th><th>FY25 Q4</th>
+          <th>FY26 Q1</th><th>FY26 Q2</th><th>FY26 Q3</th><th>FY26E Full</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>売上(億)</td>
+            <td>1,109</td><td style="background:#EBF3FA;">1,131</td><td>1,105</td><td style="background:#EBF3FA;">1,100</td>
+            <td style="background:#eff6ff;font-weight:700;">1,127</td><td style="background:#dbeafe;font-weight:700;">1,165</td><td style="background:#eff6ff;font-weight:700;">1,118</td><td>4,580E</td>
+          </tr>
+          <tr>
+            <td>営業利益(億)</td>
+            <td>5.1</td><td style="background:#EBF3FA;">4.7</td><td class="neg">-0.4</td><td style="background:#EBF3FA;" class="neg">-4.3</td>
+            <td style="background:#eff6ff;font-weight:700;" class="pos">4.5</td><td style="background:#dbeafe;font-weight:700;" class="pos">3.6</td><td style="background:#eff6ff;font-weight:700;" class="pos">2.5</td><td>10.0E</td>
+          </tr>
+          <tr>
+            <td>経常利益(億)</td>
+            <td>6.5</td><td style="background:#EBF3FA;">5.5</td><td>1.3</td><td style="background:#EBF3FA;" class="neg">-6.9</td>
+            <td style="background:#eff6ff;font-weight:700;" class="pos">5.3</td><td style="background:#dbeafe;font-weight:700;" class="pos">4.8</td><td style="background:#eff6ff;font-weight:700;" class="pos">3.5</td><td>13.0E</td>
+          </tr>
+          <tr>
+            <td>純利益(億)</td>
+            <td>4.4</td><td style="background:#EBF3FA;">3.8</td><td>1.2</td><td style="background:#EBF3FA;" class="neg">-5.1</td>
+            <td style="background:#eff6ff;font-weight:700;" class="pos">4.1</td><td style="background:#dbeafe;font-weight:700;" class="pos">3.2</td><td style="background:#eff6ff;font-weight:700;" class="pos">2.3</td><td>9.0E</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="insight">💡 FY26/02截至Q3，营业利润10.6亿已超越全年指引10.0亿（达成率106%），净利润9.6亿亦超过9.0亿目标（107%）。相比上年同期（FY25 Q3营业利润仅-0.4亿），本年度Q3实现扭亏为盈（+2.5亿），显示出盈利能力的实质性改善。FY26全年通期预测的最终达成基本已无悬念，关键焦点将转向FY27期的业绩指引与能否维持价格转嫁效果。Q4是否出现一次性费用需持续跟踪。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 4: 中期経営計画 ══ -->
+<div class="card" id="s4">
+  <div class="card-header">
+    <span class="section-badge">Section 4</span>
+    <span class="card-title">中期経営計画 業績目標 <span>Medium-Term Plan Targets (百万円)</span></span>
+  </div>
+  <div class="card-body">
+
+    <!-- Plan vs Actual comparison chart -->
+    <canvas id="chart-chuki" height="90"></canvas>
+
+    <!-- 2025年4月版（最新） -->
+    <div style="margin-top:20px;">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:8px;color:#1e293b;">
+        ▶ 最新版：中期経営計画（2025年4月改訂）
+        <span style="font-size:11px;font-weight:400;color:#64748b;margin-left:8px;">FY2026/02 〜 FY2028/02 目標</span>
+      </h3>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>指標</th>
+            <th>FY2025/02<br><span style="font-size:10px;font-weight:400;">（実績）</span></th>
+            <th>FY2026/02<br><span style="font-size:10px;font-weight:400;">（2025計画）</span></th>
+            <th>FY2027/02<br><span style="font-size:10px;font-weight:400;">（2025計画）</span></th>
+            <th>FY2028/02<br><span style="font-size:10px;font-weight:400;">（2025計画 最終年）</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>売上高（百万円）</td><td>444,546</td><td style="color:#1a56db;font-weight:600;">475,000</td><td style="color:#1a56db;font-weight:600;">570,000</td><td style="color:#1a56db;font-weight:600;">600,000</td></tr>
+            <tr><td>営業利益（百万円）</td><td>5,143</td><td style="color:#1a56db;font-weight:600;">7,500</td><td style="color:#1a56db;font-weight:600;">10,000</td><td style="color:#1a56db;font-weight:600;">15,000</td></tr>
+            <tr><td>経常利益（百万円）</td><td>6,388</td><td style="color:#1a56db;font-weight:600;">8,500</td><td style="color:#1a56db;font-weight:600;">11,000</td><td style="color:#1a56db;font-weight:600;">16,000</td></tr>
+            <tr><td>純利益（百万円）</td><td>2,667</td><td style="color:#1a56db;font-weight:600;">4,500</td><td style="color:#1a56db;font-weight:600;">7,000</td><td style="color:#1a56db;font-weight:600;">10,200</td></tr>
+            <tr><td>営業利益率</td>
+              <td class="neg">1.16%</td>
+              <td style="color:#1a56db;font-weight:600;">1.58%</td>
+              <td style="color:#1a56db;font-weight:600;">1.75%</td>
+              <td style="color:#1a56db;font-weight:600;">2.50%</td>
+            </tr>
+            <tr><td>ROE</td>
+              <td class="neg">2.2%</td>
+              <td style="color:#1a56db;font-weight:600;">3.7%</td>
+              <td style="color:#1a56db;font-weight:600;">5.7%</td>
+              <td style="color:#1a56db;font-weight:600;">8.0%</td>
+            </tr>
+            <tr><td>純資産（百万円）</td><td>129,864</td><td>130,000</td><td>132,000</td><td>138,000</td></tr>
+            <tr><td>総資産（百万円）</td><td>230,595</td><td>240,000</td><td>250,000</td><td>255,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Plan revision comparison -->
+    <div style="margin-top:20px;">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:8px;color:#1e293b;">
+        ▶ 計画改訂の経緯：2024年4月版 vs 2025年4月版（下方修正）
+      </h3>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>指標</th>
+            <th>FY2026/02<br><span style="font-size:10px;font-weight:400;">2024計画</span></th>
+            <th>FY2026/02<br><span style="font-size:10px;font-weight:400;">2025計画</span></th>
+            <th>変化率</th>
+            <th>FY2027/02<br><span style="font-size:10px;font-weight:400;">2024計画</span></th>
+            <th>FY2027/02<br><span style="font-size:10px;font-weight:400;">2025計画</span></th>
+            <th>変化率</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td>売上高（百万円）</td>
+              <td>470,000</td><td>475,000</td><td class="pos">+1.1%</td>
+              <td>540,000</td><td>570,000</td><td class="pos">+5.6%</td>
+            </tr>
+            <tr>
+              <td>営業利益（百万円）</td>
+              <td>11,700</td><td>7,500</td><td class="neg">▼35.9%</td>
+              <td>20,000</td><td>10,000</td><td class="neg">▼50.0%</td>
+            </tr>
+            <tr>
+              <td>純利益（百万円）</td>
+              <td>8,100</td><td>4,500</td><td class="neg">▼44.4%</td>
+              <td>13,500</td><td>7,000</td><td class="neg">▼48.1%</td>
+            </tr>
+            <tr>
+              <td>ROE</td>
+              <td>6.4%</td><td>3.7%</td><td class="neg">▼2.7pp</td>
+              <td>10.0%</td><td>5.7%</td><td class="neg">▼4.3pp</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:8px;font-size:11px;color:#64748b;">
+        ※改訂要因：海外事業（米国Aurora新工場・ニュージーランド牧畜）の立ち上げ遅延と想定外コスト増。
+        米国工場はFY2026/02（2025年夏）完成予定、フル稼働はFY2027/02以降。
+      </p>
+    </div>
+
+    <p class="insight">💡 2025年4月版中期计划将FY2026/02营业利润目标从117亿日元大幅下调至75亿（-35.9%），FY2027/02目标腰斩至100亿（-50.0%），主因是海外业务（美国Aurora新工厂、新西兰牧畜）启动延迟。最终年度推迟至FY2028/02，ROE 8%目标也延后两年实现。FY2028/02的营业利润率目标仅2.5%，在食品行业中仍属偏低水平，若海外业务不能如期贡献利润，达成压力较大。值得关注的是，FY2026/02 Q3累计营业利润（10.6亿）已超过全年目标（10.0亿），短期达成率领先于中期计划进度，但本质改善尚需海外工厂正式投产验证。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 5: 利益率・ROE ══ -->
+<div class="card" id="s5">
+  <div class="card-header">
+    <span class="section-badge">Section 5</span>
+    <span class="card-title">10年利益率・ROE <span>Margin & Return on Equity (%)</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-margin" height="90"></canvas>
+    <p class="insight">💡 营业利润率从峰值1.67%（19/02）持续下滑至0.11%（25/02），净利润率仅0.10%，ROE跌至0.88%。在食品流通这一低利润率赛道，任何原材料成本的上涨都会对极薄的利润空间产生不成比例的冲击。ROE长期低于资本成本（约5〜8%），从理论上支撑了PBR持续低于1倍的定价逻辑。利润率的结构性修复（提价能力、销售组合优化）是股价重估的核心催化剂。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 6: PBR・PER・EV/EBITDA ══ -->
+<div class="card" id="s6">
+  <div class="card-header">
+    <span class="section-badge">Section 6</span>
+    <span class="card-title">10年 PBR・PER・EV/EBITDA <span>Valuation Multiples</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-val" height="90"></canvas>
+    <div style="margin-top:16px;overflow-x:auto;">
+      <table class="data-table">
+        <thead><tr>
+          <th>期末</th>
+          <th>期末株価(円)</th>
+          <th>EPS(円)</th>
+          <th>BPS(円)</th>
+          <th>PER(x)</th>
+          <th>PBR(x)</th>
+          <th>EV/EBITDA(x)</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>16/02</td>
+            <td>3,160</td>
+            <td class="">353.5</td>
+            <td>5,192</td>
+            <td>8.94</td>
+            <td>0.61</td>
+            <td>5.8</td>
+          </tr>
+          <tr style="background:#EBF3FA;">
+            <td>17/02</td>
+            <td>2,943</td>
+            <td class="">313.5</td>
+            <td>5,348</td>
+            <td>9.39</td>
+            <td>0.55</td>
+            <td>5.7</td>
+          </tr>
+          <tr>
+            <td>18/02</td>
+            <td>4,445</td>
+            <td class="">430.2</td>
+            <td>5,639</td>
+            <td>10.33</td>
+            <td>0.79</td>
+            <td>6.5</td>
+          </tr>
+          <tr style="background:#EBF3FA;">
+            <td>19/02</td>
+            <td>4,320</td>
+            <td class="">526.7</td>
+            <td>5,940</td>
+            <td>8.20</td>
+            <td>0.73</td>
+            <td>5.9</td>
+          </tr>
+          <tr>
+            <td>20/02</td>
+            <td>2,921</td>
+            <td class="">453.3</td>
+            <td>6,129</td>
+            <td>6.44</td>
+            <td>0.48</td>
+            <td>4.7</td>
+          </tr>
+          <tr style="background:#EBF3FA;">
+            <td>21/02</td>
+            <td>2,870</td>
+            <td class="">188.7</td>
+            <td>6,062</td>
+            <td>15.21</td>
+            <td>0.47</td>
+            <td>7.2</td>
+          </tr>
+          <tr>
+            <td>22/02</td>
+            <td>3,070</td>
+            <td class="">256.9</td>
+            <td>6,151</td>
+            <td>11.95</td>
+            <td>0.50</td>
+            <td>6.1</td>
+          </tr>
+          <tr style="background:#EBF3FA;">
+            <td>23/02</td>
+            <td>2,865</td>
+            <td class="">280.9</td>
+            <td>6,289</td>
+            <td>10.20</td>
+            <td>0.46</td>
+            <td>5.8</td>
+          </tr>
+          <tr>
+            <td>24/02</td>
+            <td>2,730</td>
+            <td class="">224.5</td>
+            <td>6,368</td>
+            <td>12.16</td>
+            <td>0.43</td>
+            <td>6.9</td>
+          </tr>
+          <tr style="background:#EBF3FA;">
+            <td>25/02</td>
+            <td>2,780</td>
+            <td class="">55.6</td>
+            <td>6,283</td>
+            <td>50.00</td>
+            <td>0.44</td>
+            <td>8.9</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="insight">💡 PBR常年维持在0.43〜0.79x区间，EV/EBITDA在4.7〜8.9x，整体估值偏低。25/02期因净利润骤降至4.3亿，PER异常膨胀至50x，不具参考意义。PBR中枢约0.50x，反映了市场对食肉流通低ROE结构的长期定价共识。EV/EBITDA相对稳定在5〜7x，说明公司的EBITDA（折旧前利润）韧性好于账面净利，但近年有利子负债大幅增加推高了企业价值，需关注债务偿还进度。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 7: EPS・BPS・配当 ══ -->
+<div class="card" id="s7">
+  <div class="card-header">
+    <span class="section-badge">Section 7</span>
+    <span class="card-title">10年 EPS・BPS・配当・配当性向・DOE <span>Per-Share Metrics & Dividends</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-eps" height="90"></canvas>
+    <div style="margin-top:16px;overflow-x:auto;">
+      <table class="data-table">
+        <thead><tr>
+          <th>指標</th>
+          <th>16/02</th>
+          <th>17/02</th>
+          <th>18/02</th>
+          <th>19/02</th>
+          <th>20/02</th>
+          <th>21/02</th>
+          <th>22/02</th>
+          <th>23/02</th>
+          <th>24/02</th>
+          <th>25/02</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="text-align:left;font-weight:600;">EPS(円)</td>
+            <td>353.5</td>
+            <td style="background:#EBF3FA;">313.5</td>
+            <td>430.2</td>
+            <td style="background:#EBF3FA;">526.7</td>
+            <td>453.3</td>
+            <td style="background:#EBF3FA;">188.7</td>
+            <td>256.9</td>
+            <td style="background:#EBF3FA;">280.9</td>
+            <td>224.5</td>
+            <td style="background:#EBF3FA;">55.6</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">BPS(円)</td>
+            <td>5,192</td>
+            <td style="background:#EBF3FA;">5,348</td>
+            <td>5,639</td>
+            <td style="background:#EBF3FA;">5,940</td>
+            <td>6,129</td>
+            <td style="background:#EBF3FA;">6,062</td>
+            <td>6,151</td>
+            <td style="background:#EBF3FA;">6,289</td>
+            <td>6,368</td>
+            <td style="background:#EBF3FA;">6,283</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">DPS(円)</td>
+            <td>65</td>
+            <td style="background:#EBF3FA;">65</td>
+            <td>75</td>
+            <td style="background:#EBF3FA;">89</td>
+            <td>84</td>
+            <td style="background:#EBF3FA;">74</td>
+            <td>79</td>
+            <td style="background:#EBF3FA;">84</td>
+            <td>84</td>
+            <td style="background:#EBF3FA;">89</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">配当性向(%)</td>
+            <td>18.4</td>
+            <td style="background:#EBF3FA;">20.7</td>
+            <td>17.4</td>
+            <td style="background:#EBF3FA;">16.9</td>
+            <td>18.5</td>
+            <td style="background:#EBF3FA;">39.2</td>
+            <td>30.8</td>
+            <td style="background:#EBF3FA;">29.9</td>
+            <td>37.4</td>
+            <td style="background:#EBF3FA;" class="neg">160.0</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">DOE(%)</td>
+            <td>1.25</td>
+            <td style="background:#EBF3FA;">1.22</td>
+            <td>1.33</td>
+            <td style="background:#EBF3FA;">1.50</td>
+            <td>1.37</td>
+            <td style="background:#EBF3FA;">1.22</td>
+            <td>1.28</td>
+            <td style="background:#EBF3FA;">1.34</td>
+            <td>1.32</td>
+            <td style="background:#EBF3FA;">1.42</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">自社株買い</td>
+            <td>0</td>
+            <td style="background:#EBF3FA;">0</td>
+            <td>0</td>
+            <td style="background:#EBF3FA;">0</td>
+            <td>0</td>
+            <td style="background:#EBF3FA;">0</td>
+            <td>0</td>
+            <td style="background:#EBF3FA;">0</td>
+            <td>0</td>
+            <td style="background:#EBF3FA;">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="insight">💡 DPS在65〜89日元区间高度稳定，体现出公司"优先保障股息"的强烈政策取向。然而25/02期配当性向高达160%，意味着股息金额已超过净利润，属于典型的"赤字派息"警示信号。BPS从5,192日元缓慢升至6,283日元（+21%），内部留存积累尚算稳健。DOE稳定在1.22〜1.50%区间，体现了以净资产为基准的稳定分红承诺。完全无自社株买入，资本回报全部依赖现金股息。若利润无法恢复，当前股息政策的可持续性存疑。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 8: 流動資産/時価総額 ══ -->
+<div class="card" id="s8">
+  <div class="card-header">
+    <span class="section-badge">Section 8</span>
+    <span class="card-title">10年 時価総額/(流動資産−負債) <span>Market Cap vs Net Current Assets</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-nca" height="90"></canvas>
+    <div style="margin-top:16px;overflow-x:auto;">
+      <table class="data-table">
+        <thead><tr>
+          <th>指標</th>
+          <th>16/02</th>
+          <th>17/02</th>
+          <th>18/02</th>
+          <th>19/02</th>
+          <th>20/02</th>
+          <th>21/02</th>
+          <th>22/02</th>
+          <th>23/02</th>
+          <th>24/02</th>
+          <th>25/02</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="text-align:left;font-weight:600;">流動資産(億)</td>
+            <td>443</td>
+            <td style="background:#EBF3FA;">454</td>
+            <td>502</td>
+            <td style="background:#EBF3FA;">532</td>
+            <td>517</td>
+            <td style="background:#EBF3FA;">594</td>
+            <td>600</td>
+            <td style="background:#EBF3FA;">661</td>
+            <td>735</td>
+            <td style="background:#EBF3FA;">758</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">流動負債(億)</td>
+            <td>323</td>
+            <td style="background:#EBF3FA;">320</td>
+            <td>379</td>
+            <td style="background:#EBF3FA;">399</td>
+            <td>366</td>
+            <td style="background:#EBF3FA;">401</td>
+            <td>468</td>
+            <td style="background:#EBF3FA;">564</td>
+            <td>635</td>
+            <td style="background:#EBF3FA;">687</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">NCA(億)</td>
+            <td>120</td>
+            <td style="background:#EBF3FA;">134</td>
+            <td>123</td>
+            <td style="background:#EBF3FA;">133</td>
+            <td>151</td>
+            <td style="background:#EBF3FA;">193</td>
+            <td>132</td>
+            <td style="background:#EBF3FA;">97</td>
+            <td>100</td>
+            <td style="background:#EBF3FA;">71</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">時価総額(億)</td>
+            <td>246</td>
+            <td style="background:#EBF3FA;">229</td>
+            <td>346</td>
+            <td style="background:#EBF3FA;">336</td>
+            <td>228</td>
+            <td style="background:#EBF3FA;">224</td>
+            <td>239</td>
+            <td style="background:#EBF3FA;">223</td>
+            <td>213</td>
+            <td style="background:#EBF3FA;">216</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;font-weight:600;">倍率(時価/NCA)</td>
+            <td>2.05</td>
+            <td style="background:#EBF3FA;">1.71</td>
+            <td>2.81</td>
+            <td style="background:#EBF3FA;">2.53</td>
+            <td>1.51</td>
+            <td style="background:#EBF3FA;">1.16</td>
+            <td>1.81</td>
+            <td style="background:#EBF3FA;">2.30</td>
+            <td>2.13</td>
+            <td style="background:#EBF3FA;">3.04</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="insight">💡 时价总额（216亿日元）与NCA（71亿日元）的倍率在25/02达到3.04x，为近十年最高。这意味着市场给予的溢价主要来自固定资产（特别是810亿的有形固定资产）及品牌/流通网络的隐性价值，而非流动资产的安全垫。NCA从峰值193亿（21/02）骤降至71亿，显示流动负债（主要是仕入债务与短期借款）的急剧膨胀。若流动性趋紧，短期偿债压力将成为重要风险点。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 9: 有利子負債 ══ -->
+<div class="card" id="s9">
+  <div class="card-header">
+    <span class="section-badge">Section 9</span>
+    <span class="card-title">10年 有利子負債/現金等価物 <span>Interest-Bearing Debt vs Cash (億円)</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-debt" height="90"></canvas>
+    <p class="insight">💡 有息负债从98亿（16/02）急增至463亿（24/02），随后略降至445亿（25/02），近三年呈现出罕见的债务膨胀。这一趋势主要源于持续的资本性支出投入（年均70〜90亿）与投资性现金流长期为负，自由现金流无法覆盖资本开支。现金存量基本维持在150〜175亿，净有息负债达269亿，债务杠杆已达到需要密切关注的水平。若利润无法回升，债务偿还压力将制约分红可持续性与未来投资能力。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 10: 回転率 ══ -->
+<div class="card" id="s10">
+  <div class="card-header">
+    <span class="section-badge">Section 10</span>
+    <span class="card-title">10年 売掛金/棚卸資産 対売上原価 <span>Receivables & Inventory Turnover Ratios</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-turn" height="90"></canvas>
+    <p style="margin-top:8px;font-size:12px;color:var(--muted);">比率 = 残高 ÷ 売上原価 (小さいほど回転が早い)</p>
+    <p class="insight">💡 应收账款比率长期稳定在0.097〜0.104之间，约相当于36〜38天的账期，与食品流通行业的正常水平相符。存货比率从16/02的0.069逐步升至21/02的0.088（高峰），近年回落至0.073，存货管理有所改善。整体来看，两项周转指标均保持在合理区间，运营资金效率是这家规模4,000亿企业的强项之一，也是低利润率下维持现金流稳定的关键支撑。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 11: CF推移 ══ -->
+<div class="card" id="s11">
+  <div class="card-header">
+    <span class="section-badge">Section 11</span>
+    <span class="card-title">10年 CF推移 <span>Operating / Investing / Financing / FCF (億円)</span></span>
+  </div>
+  <div class="card-body">
+    <canvas id="chart-cf" height="90"></canvas>
+    <p class="insight">💡 经营性现金流整体健康（20〜79亿），但投资性现金流持续大额流出（年均-70亿），导致自由现金流长期为负（除16/02、19/02、21/02外均为负值）。特别是22/02以来FCF恶化至-35〜-73亿，反映出大规模资本支出战略。融资性现金流在23〜25/02转为正值，显示公司通过借款弥补资本缺口。若经营现金流不能大幅提升，债务驱动的扩张模式难以为继，需关注资本支出是否带来相应的收益改善。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 12: BS可視化 ══ -->
+<div class="card" id="s12">
+  <div class="card-header">
+    <span class="section-badge">Section 12</span>
+    <span class="card-title">最新BS可視化 2025/02 <span>Balance Sheet Visualization (1,847億円)</span></span>
+  </div>
+  <div class="card-body">
+
+    <div style="display:flex;gap:0;height:520px;border:2px solid #cbd5e1;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+
+      <!-- ═══ LEFT: Assets ═══ -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+        <div style="padding:9px 12px;background:#1e40af;color:#fff;font-weight:700;font-size:13px;text-align:center;letter-spacing:.3px;flex-shrink:0;">
+          資産合計 &nbsp;1,847億円
+        </div>
+        <!-- Current Assets: flex=758 of 1847 total -->
+        <div style="flex:758;display:flex;flex-direction:column;background:#eff6ff;border-bottom:2px dashed #93c5fd;min-height:0;">
+          <div style="padding:5px 10px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <span>▶ 流動資産</span><span>758億 &nbsp;41.0%</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:4px 6px;min-height:0;overflow:hidden;">
+            <div style="flex:176;background:#2563eb;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>現金・預金</span><span style="font-weight:700;">176億 &nbsp;9.5%</span>
+            </div>
+            <div style="flex:295;background:#3b82f6;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>売上債権</span><span style="font-weight:700;">295億 &nbsp;16.0%</span>
+            </div>
+            <div style="flex:233;background:#60a5fa;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#1e293b;font-size:11px;min-height:0;">
+              <span>棚卸資産</span><span style="font-weight:700;">233億 &nbsp;12.6%</span>
+            </div>
+            <div style="flex:54;background:#bfdbfe;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#1e293b;font-size:10px;min-height:0;">
+              <span>その他流動</span><span style="font-weight:700;">54億</span>
+            </div>
+          </div>
+        </div>
+        <!-- Fixed Assets: flex=1089 of 1847 total -->
+        <div style="flex:1089;display:flex;flex-direction:column;background:#f0fdf4;min-height:0;">
+          <div style="padding:5px 10px;background:#065f46;color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <span>▶ 固定資産</span><span>1,089億 &nbsp;59.0%</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:4px 6px;min-height:0;overflow:hidden;">
+            <div style="flex:810;background:#059669;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>有形固定資産</span><span style="font-weight:700;">810億 &nbsp;43.9%</span>
+            </div>
+            <div style="flex:158;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>投資有価証券</span><span style="font-weight:700;">158億 &nbsp;8.6%</span>
+            </div>
+            <div style="flex:121;background:#6ee7b7;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#1e293b;font-size:10px;min-height:0;">
+              <span>無形・その他</span><span style="font-weight:700;">121億 &nbsp;6.5%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Centre divider ── -->
+      <div style="width:4px;background:linear-gradient(to bottom,#1e40af 41%,#065f46 41%);flex-shrink:0;"></div>
+
+      <!-- ═══ RIGHT: Liabilities + Equity ═══ -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+        <div style="padding:9px 12px;background:#4c1d95;color:#fff;font-weight:700;font-size:13px;text-align:center;letter-spacing:.3px;flex-shrink:0;">
+          負債・純資産合計 &nbsp;1,847億円
+        </div>
+        <!-- Current Liab: flex=687 -->
+        <div style="flex:687;display:flex;flex-direction:column;background:#f5f3ff;border-bottom:2px dashed #a78bfa;min-height:0;">
+          <div style="padding:5px 10px;background:#6d28d9;color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <span>▶ 流動負債</span><span>687億 &nbsp;37.2%</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:4px 6px;min-height:0;overflow:hidden;">
+            <div style="flex:324;background:#7c3aed;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>仕入債務</span><span style="font-weight:700;">324億 &nbsp;17.5%</span>
+            </div>
+            <div style="flex:126;background:#8b5cf6;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>短期借入金</span><span style="font-weight:700;">126億 &nbsp;6.8%</span>
+            </div>
+            <div style="flex:237;background:#a78bfa;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>その他流動負債</span><span style="font-weight:700;">237億 &nbsp;12.8%</span>
+            </div>
+          </div>
+        </div>
+        <!-- Fixed Liab: flex=450 -->
+        <div style="flex:450;display:flex;flex-direction:column;background:#fff1f2;border-bottom:2px dashed #fca5a5;min-height:0;">
+          <div style="padding:5px 10px;background:#b91c1c;color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <span>▶ 固定負債</span><span>450億 &nbsp;24.4%</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:4px 6px;min-height:0;overflow:hidden;">
+            <div style="flex:319;background:#dc2626;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>長期借入金</span><span style="font-weight:700;">319億 &nbsp;17.3%</span>
+            </div>
+            <div style="flex:131;background:#fca5a5;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#1e293b;font-size:11px;min-height:0;">
+              <span>その他固定負債</span><span style="font-weight:700;">131億 &nbsp;7.1%</span>
+            </div>
+          </div>
+        </div>
+        <!-- Equity: flex=710 -->
+        <div style="flex:710;display:flex;flex-direction:column;background:#fefce8;min-height:0;">
+          <div style="padding:5px 10px;background:#92400e;color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <span>▶ 純資産（自己資本）</span><span>710億 &nbsp;38.4%</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:4px 6px;min-height:0;overflow:hidden;">
+            <div style="flex:135;background:#d97706;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>資本金・資本剰余金</span><span style="font-weight:700;">135億 &nbsp;7.3%</span>
+            </div>
+            <div style="flex:461;background:#f59e0b;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#fff;font-size:11px;min-height:0;">
+              <span>利益剰余金</span><span style="font-weight:700;">461億 &nbsp;24.9%</span>
+            </div>
+            <div style="flex:114;background:#fde68a;border-radius:4px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#1e293b;font-size:11px;min-height:0;">
+              <span>その他・評価差額等</span><span style="font-weight:700;">114億 &nbsp;6.2%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Key Ratios row ── -->
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+      <div style="background:#eff6ff;border-left:3px solid #2563eb;border-radius:0 6px 6px 0;padding:8px 14px;font-size:12px;flex:1;min-width:130px;">
+        <div style="color:#1d4ed8;font-weight:700;margin-bottom:2px;">流動比率</div>
+        <div style="font-size:18px;font-weight:700;">110.3%</div>
+        <div style="color:#64748b;font-size:10px;">758÷687</div>
+      </div>
+      <div style="background:#f0fdf4;border-left:3px solid #059669;border-radius:0 6px 6px 0;padding:8px 14px;font-size:12px;flex:1;min-width:130px;">
+        <div style="color:#065f46;font-weight:700;margin-bottom:2px;">自己資本比率</div>
+        <div style="font-size:18px;font-weight:700;">38.4%</div>
+        <div style="color:#64748b;font-size:10px;">710÷1,847</div>
+      </div>
+      <div style="background:#f5f3ff;border-left:3px solid #7c3aed;border-radius:0 6px 6px 0;padding:8px 14px;font-size:12px;flex:1;min-width:130px;">
+        <div style="color:#6d28d9;font-weight:700;margin-bottom:2px;">有利子負債</div>
+        <div style="font-size:18px;font-weight:700;">445億円</div>
+        <div style="color:#64748b;font-size:10px;">短期126＋長期319</div>
+      </div>
+      <div style="background:#fefce8;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:8px 14px;font-size:12px;flex:1;min-width:130px;">
+        <div style="color:#92400e;font-weight:700;margin-bottom:2px;">ネット有利子負債</div>
+        <div style="font-size:18px;font-weight:700;">269億円</div>
+        <div style="color:#64748b;font-size:10px;">445－176（現金）</div>
+      </div>
+    </div>
+    <p class="insight">💡 自有资本比率38.4%，仍处于合理区间，但相比同类食品公司偏低。流动比率110.3%，流动性略显偏紧——流动资产（758亿）仅略高于流动负债（687亿），抗冲击缓冲有限。固定资产中710亿（810亿有形固定资产）主要为食肉加工设备与物流基础设施，变现能力弱；158亿投资性有价证券（含政策持股）若推进出售，可显著改善流动性与资本效率。净有息负债高达269亿，是当前财务健康度的最大隐患，需重点跟踪未来债务偿还进度。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 13: PL瀑布図 ══ -->
+<div class="card" id="s13">
+  <div class="card-header">
+    <span class="section-badge">Section 13</span>
+    <span class="card-title">最新PL瀑布図 2025/02 <span>P&L Waterfall Chart (億円)</span></span>
+  </div>
+  <div class="card-body">
+    <div id="chart-wf"></div>
+    <p class="insight">💡 营收4,445亿日元经扣除成本后，毛利仅351亿（毛利率7.9%），这一极低的毛利率是食肉流通业的结构性特征。销售管理费用约346亿几乎耗尽毛利，仅剩5.1亿营业利润。营业外净收益约1.3亿（利息净收支等），经常利益6.4亿。扣除法税等约2.1亿后，净利润仅4.3亿。整个PL显示出"微毫之利"的极端特性——任何成本波动都会对净利润产生数倍放大效应，这正是25/02业绩大幅恶化的根本机制，也是理解この公司风险收益特性的核心。</p>
+  </div>
+</div>
+
+</div><!-- end .main -->
+
+<footer>
+  <p>データ出典: IRBank / Yahoo Finance Japan / 有価証券報告書 / 決算短信 | 2292 エスフーズ株式会社 | 分析看板生成日: 2026-04-13</p>
+  <p style="margin-top:4px;">免責事項: 本資料は情報提供目的のみ。投資判断の根拠となるものではありません。</p>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+//  SECTION 1: ApexCharts Candlestick
+// ─────────────────────────────────────────────
+(function() {
+  const seriesData = [[1460300400000, 1955.1, 2124.7, 1918.3, 2095.9], [1460905200000, 2079.1, 2191.1, 2075.9, 2094.3], [1461510000000, 2126.3, 2134.3, 2055.9, 2076.7], [1462114800000, 2035.9, 2196.7, 2035.1, 2177.5], [1462719600000, 2178.3, 2323.0, 2178.3, 2251.1], [1463324400000, 2239.9, 2353.4, 2213.5, 2311.8], [1463929200000, 2327.0, 2375.8, 2260.7, 2278.3], [1464534000000, 2278.3, 2471.8, 2258.3, 2451.8], [1465138800000, 2423.8, 2475.8, 2340.6, 2375.0], [1465743600000, 2351.8, 2358.2, 2163.1, 2167.1], [1466348400000, 2195.1, 2256.7, 2062.3, 2075.9], [1466953200000, 2120.7, 2274.3, 2120.7, 2262.3], [1467558000000, 2258.3, 2335.8, 2239.1, 2257.5], [1468162800000, 2257.5, 2339.8, 2202.3, 2225.5], [1468767600000, 2225.5, 2242.3, 2147.9, 2167.1], [1469372400000, 2210.3, 2323.0, 2177.5, 2210.3], [1469977200000, 2184.7, 2217.5, 2036.7, 2070.3], [1470582000000, 2071.9, 2126.3, 2019.9, 2095.1], [1471186800000, 2126.3, 2158.3, 1997.5, 2015.9], [1471791600000, 2023.9, 2083.9, 2000.7, 2012.7], [1472396400000, 2054.3, 2083.9, 1970.3, 2066.3], [1473001200000, 2106.1, 2124.6, 2080.3, 2080.3], [1473606000000, 2080.3, 2131.9, 2066.6, 2100.5], [1474210800000, 2100.5, 2176.2, 2088.4, 2157.6], [1474815600000, 2174.6, 2193.1, 2107.7, 2127.8], [1475420400000, 2115.0, 2205.2, 2115.0, 2162.5], [1476025200000, 2162.5, 2283.3, 2140.7, 2219.7], [1476630000000, 2214.8, 2240.6, 2169.7, 2185.0], [1477234800000, 2192.3, 2283.3, 2192.3, 2274.4], [1477839600000, 2240.6, 2297.0, 2240.6, 2268.8], [1478444400000, 2265.6, 2317.9, 2189.0, 2196.3], [1479049200000, 2189.0, 2204.4, 2132.7, 2178.6], [1479654000000, 2189.0, 2189.0, 2111.7, 2135.9], [1480258800000, 2120.6, 2197.9, 2119.8, 2154.4], [1480863600000, 2132.7, 2243.8, 2119.0, 2243.0], [1481468400000, 2245.4, 2358.2, 2235.8, 2328.4], [1482073200000, 2313.1, 2403.3, 2313.1, 2373.5], [1482678000000, 2338.0, 2456.4, 2321.1, 2444.4], [1483282800000, 2444.4, 2464.5, 2389.6, 2444.4], [1483887600000, 2444.4, 2528.9, 2369.5, 2452.4], [1484492400000, 2452.4, 2524.9, 2452.4, 2476.6], [1485097200000, 2456.4, 2480.6, 2414.6, 2424.2], [1485702000000, 2424.2, 2532.9, 2416.2, 2516.8], [1486306800000, 2520.9, 2641.7, 2472.5, 2593.4], [1486911600000, 2601.4, 2625.6, 2561.1, 2581.3], [1487516400000, 2581.3, 2613.5, 2524.9, 2545.0], [1488121200000, 2535.2, 2624.3, 2535.2, 2559.5], [1488726000000, 2563.5, 2591.9, 2527.1, 2563.5], [1489330800000, 2571.6, 2587.8, 2519.0, 2555.4], [1489935600000, 2555.4, 2612.1, 2551.4, 2612.1], [1490540400000, 2616.2, 2652.6, 2583.8, 2624.3], [1491145200000, 2632.4, 2660.7, 2539.2, 2563.5], [1491750000000, 2563.5, 2608.1, 2527.1, 2527.1], [1492354800000, 2608.1, 2806.5, 2587.8, 2794.4], [1492959600000, 2737.7, 2826.8, 2681.0, 2814.6], [1493564400000, 2826.8, 2863.2, 2774.1, 2790.3], [1494169200000, 2810.6, 2899.7, 2790.3, 2859.2], [1494774000000, 2871.3, 2924.0, 2847.0, 2887.5], [1495378800000, 2919.9, 3045.4, 2903.7, 3021.2], [1495983600000, 3021.2, 3110.2, 3009.0, 3106.2], [1496588400000, 3102.1, 3179.1, 3090.0, 3098.1], [1497193200000, 3207.4, 3272.2, 3122.4, 3183.1], [1497798000000, 3191.2, 3337.0, 3166.9, 3316.8], [1498402800000, 3320.8, 3369.4, 3252.0, 3349.2], [1499007600000, 3369.4, 3385.6, 3272.2, 3345.1], [1499612400000, 3333.0, 3527.4, 3239.8, 3499.0], [1500217200000, 3499.0, 3499.0, 3389.7, 3393.7], [1500822000000, 3405.9, 3442.3, 3341.1, 3377.5], [1501426800000, 3365.4, 3369.4, 3296.5, 3361.3], [1502031600000, 3365.4, 3381.6, 3288.4, 3345.1], [1502636400000, 3337.0, 3507.1, 3280.3, 3300.6], [1503241200000, 3296.5, 3324.9, 3239.8, 3300.6], [1503846000000, 3333.0, 3442.3, 3324.9, 3397.8], [1504450800000, 3376.7, 3405.2, 3185.5, 3344.2], [1505055600000, 3348.2, 3490.6, 3319.7, 3413.3], [1505660400000, 3413.3, 3482.5, 3352.3, 3388.9], [1506265200000, 3384.8, 3596.4, 3356.4, 3559.8], [1506870000000, 3580.1, 3600.5, 3486.5, 3547.6], [1507474800000, 3547.6, 3889.3, 3543.5, 3616.7], [1508079600000, 3584.2, 3624.9, 3429.6, 3474.3], [1508684400000, 3515.0, 3612.7, 3429.6, 3584.2], [1509289200000, 3592.3, 3612.7, 3494.7, 3588.3], [1509894000000, 3567.9, 3718.4, 3425.5, 3710.3], [1510498800000, 3742.8, 3816.1, 3673.7, 3763.2], [1511103600000, 3783.5, 3930.0, 3755.1, 3905.6], [1511708400000, 3942.2, 4068.3, 3848.6, 4039.8], [1512313200000, 4011.4, 4206.6, 3889.3, 4174.1], [1512918000000, 4231.0, 4312.4, 4060.2, 4117.1], [1513522800000, 4174.1, 4174.1, 3958.5, 4109.0], [1514127600000, 4157.8, 4247.3, 4092.7, 4166.0], [1514732400000, 4166.0, 4222.9, 4125.3, 4182.2], [1515337200000, 4182.2, 4198.5, 3698.1, 3820.1], [1515942000000, 3807.9, 4092.7, 3799.8, 3934.1], [1516546800000, 3925.9, 3995.1, 3856.8, 3881.2], [1517151600000, 3938.1, 3962.5, 3848.6, 3897.4], [1517756400000, 3840.5, 3844.6, 3490.6, 3588.3], [1518361200000, 3588.3, 3620.8, 3413.3, 3470.3], [1518966000000, 3490.6, 3555.7, 3445.9, 3519.1], [1519570800000, 3519.1, 3592.3, 3348.2, 3384.8], [1520175600000, 3407.8, 3530.5, 3403.7, 3465.1], [1520780400000, 3538.7, 3596.0, 3493.7, 3559.2], [1521385200000, 3559.2, 3559.2, 3403.7, 3428.3], [1521990000000, 3391.5, 3669.6, 3346.4, 3636.9], [1522594800000, 3669.6, 3874.2, 3563.3, 3825.1], [1523199600000, 3825.1, 3902.8, 3522.4, 3583.7], [1523804400000, 3354.6, 3726.9, 3281.0, 3686.0], [1524409200000, 3718.7, 3853.7, 3677.8, 3767.8], [1525014000000, 3767.8, 3833.3, 3743.3, 3747.4], [1525618800000, 3731.0, 3837.4, 3612.4, 3653.3], [1526223600000, 3616.5, 3686.0, 3571.5, 3608.3], [1526828400000, 3600.1, 3641.0, 3518.3, 3612.4], [1527433200000, 3612.4, 3735.1, 3510.1, 3686.0], [1528038000000, 3698.3, 3747.4, 3571.5, 3653.3], [1528642800000, 3673.7, 3792.4, 3645.1, 3645.1], [1529247600000, 3665.5, 3722.8, 3538.7, 3641.0], [1529852400000, 3641.0, 3641.0, 3456.9, 3555.1], [1530457200000, 3583.7, 3583.7, 3272.8, 3297.4], [1531062000000, 3297.4, 3800.6, 3203.3, 3784.2], [1531666800000, 3784.2, 3784.2, 3424.2, 3542.8], [1532271600000, 3551.0, 3747.4, 3493.7, 3739.2], [1532876400000, 3686.0, 3743.3, 3456.9, 3473.3], [1533481200000, 3477.4, 3555.1, 3399.6, 3493.7], [1534086000000, 3440.5, 3501.9, 3391.5, 3436.5], [1534690800000, 3436.5, 3510.1, 3371.0, 3477.4], [1535295600000, 3485.5, 3587.8, 3461.0, 3563.3], [1535900400000, 3553.6, 3611.3, 3496.0, 3566.0], [1536505200000, 3598.9, 3751.3, 3479.5, 3697.8], [1537110000000, 3697.8, 3948.9, 3673.0, 3887.2], [1537714800000, 3887.2, 4150.7, 3858.3, 4043.6], [1538319600000, 3986.0, 4060.1, 3899.5, 4006.6], [1538924400000, 4006.6, 4010.7, 3726.6, 3734.8], [1539529200000, 3965.4, 4142.5, 3821.3, 3895.4], [1540134000000, 3907.8, 3990.1, 3594.8, 3648.3], [1540738800000, 3615.4, 3784.2, 3520.7, 3759.5], [1541343600000, 3747.2, 3948.9, 3706.0, 3903.6], [1541948400000, 3895.4, 3981.9, 3771.9, 3850.1], [1542553200000, 3887.2, 3936.6, 3796.6, 3924.2], [1543158000000, 3953.1, 4043.6, 3878.9, 4039.5], [1543762800000, 4076.6, 4088.9, 3796.6, 3837.8], [1544367600000, 3738.9, 3796.6, 3570.1, 3726.6], [1544972400000, 3743.0, 3743.0, 3327.2, 3364.2], [1545577200000, 3364.2, 3434.2, 3141.9, 3372.5], [1546182000000, 3372.5, 3384.8, 3244.8, 3368.3], [1546786800000, 3426.0, 3570.1, 3413.6, 3500.1], [1547391600000, 3500.1, 3500.1, 3030.7, 3129.5], [1547996400000, 3154.2, 3187.2, 3022.4, 3170.7], [1548601200000, 3125.4, 3286.0, 3096.6, 3248.9], [1549206000000, 3236.6, 3306.6, 3183.0, 3211.9], [1549810800000, 3211.9, 3364.2, 3211.9, 3265.4], [1550415600000, 3323.0, 3458.9, 3314.8, 3413.6], [1551020400000, 3458.9, 3586.6, 3426.0, 3582.5], [1551625200000, 3605.9, 3614.2, 3460.9, 3473.3], [1552230000000, 3444.3, 3494.0, 3365.5, 3402.8], [1552834800000, 3444.3, 3473.3, 3340.7, 3361.4], [1553439600000, 3303.4, 3473.3, 3274.4, 3357.3], [1554044400000, 3456.7, 3465.0, 3307.5, 3328.2], [1554649200000, 3386.3, 3390.4, 3282.6, 3357.3], [1555254000000, 3203.9, 3485.7, 3158.3, 3299.2], [1555858800000, 3319.9, 3324.1, 3087.8, 3174.9], [1556463600000, 3174.9, 3174.9, 3174.9, 3174.9], [1557068400000, 3174.9, 3299.2, 3083.7, 3112.7], [1557673200000, 3100.3, 3241.2, 2980.1, 3237.1], [1558278000000, 3241.2, 3278.5, 3141.7, 3224.6], [1558882800000, 3245.3, 3274.4, 3013.2, 3025.7], [1559487600000, 2988.4, 3067.1, 2967.6, 3029.8], [1560092400000, 3034.0, 3075.4, 3004.9, 3038.1], [1560697200000, 3038.1, 3158.3, 3009.1, 3116.9], [1561302000000, 3121.0, 3166.6, 3025.7, 3034.0], [1561906800000, 3071.3, 3245.3, 3046.4, 3216.3], [1562511600000, 3199.8, 3245.3, 3112.7, 3170.7], [1563116400000, 3170.7, 3170.7, 2706.5, 2864.0], [1563721200000, 2851.6, 2913.8, 2830.9, 2864.0], [1564326000000, 2872.3, 2884.7, 2636.1, 2727.2], [1564930800000, 2723.1, 2727.2, 2561.5, 2648.5], [1565535600000, 2648.5, 2648.5, 2528.3, 2557.3], [1566140400000, 2569.7, 2607.1, 2499.3, 2536.6], [1566745200000, 2486.9, 2582.2, 2461.2, 2499.3], [1567350000000, 2510.6, 2557.4, 2453.6, 2493.8], [1567954800000, 2494.7, 2645.3, 2488.8, 2637.0], [1568559600000, 2637.0, 2724.9, 2637.0, 2657.9], [1569164400000, 2657.9, 2670.4, 2504.7, 2532.3], [1569769200000, 2501.3, 2570.0, 2436.1, 2450.3], [1570374000000, 2439.4, 2574.2, 2410.9, 2553.3], [1570978800000, 2553.3, 2574.2, 2429.4, 2442.7], [1571583600000, 2447.8, 2480.4, 2428.5, 2460.3], [1572188400000, 2450.3, 2493.8, 2390.0, 2434.4], [1572793200000, 2434.4, 2509.7, 2421.8, 2486.3], [1573398000000, 2501.3, 2582.6, 2480.4, 2511.4], [1574002800000, 2515.6, 2532.3, 2430.2, 2443.6], [1574607600000, 2472.9, 2561.6, 2444.4, 2536.5], [1575212400000, 2540.7, 2570.0, 2446.9, 2467.9], [1575817200000, 2479.6, 2487.1, 2358.2, 2364.9], [1576422000000, 2369.9, 2388.3, 2324.7, 2347.3], [1577026800000, 2340.6, 2431.0, 2336.4, 2407.6], [1577631600000, 2406.8, 2409.3, 2381.6, 2386.7], [1578236400000, 2385.0, 2425.2, 2347.3, 2419.3], [1578841200000, 2419.3, 2561.6, 2396.7, 2444.4], [1579446000000, 2444.4, 2476.2, 2310.5, 2311.3], [1580050800000, 2299.6, 2299.6, 2189.1, 2212.5], [1580655600000, 2179.9, 2291.2, 2160.6, 2241.8], [1581260400000, 2231.0, 2297.1, 2214.2, 2294.6], [1581865200000, 2285.4, 2290.4, 2179.9, 2186.6], [1582470000000, 2186.6, 2186.6, 1858.4, 1876.0], [1583074800000, 1888.1, 2049.1, 1879.6, 1894.9], [1583679600000, 1852.5, 1878.8, 1549.1, 1618.6], [1584284400000, 1652.5, 1754.2, 1550.0, 1666.1], [1584889200000, 1696.6, 2000.8, 1655.1, 2000.8], [1585494000000, 1933.9, 2000.8, 1740.7, 1758.5], [1586098800000, 1758.5, 1944.0, 1682.2, 1933.9], [1586703600000, 1934.7, 2016.1, 1885.6, 1932.2], [1587308400000, 1889.8, 1977.1, 1864.4, 1961.8], [1587913200000, 1971.2, 1993.2, 1909.3, 1945.7], [1588518000000, 1945.7, 1989.8, 1896.6, 1977.1], [1589122800000, 1982.2, 2053.4, 1962.7, 1996.6], [1589727600000, 1996.6, 2094.0, 1990.7, 2051.7], [1590332400000, 2071.2, 2244.0, 2071.2, 2163.5], [1590937200000, 2205.9, 2266.1, 2183.9, 2260.1], [1591542000000, 2268.6, 2315.2, 2139.0, 2228.8], [1592146800000, 2256.8, 2307.6, 2194.9, 2307.6], [1592751600000, 2311.8, 2311.8, 2233.0, 2284.7], [1593356400000, 2261.8, 2296.6, 2166.9, 2197.4], [1593961200000, 2203.4, 2260.1, 2094.0, 2111.8], [1594566000000, 2127.9, 2222.9, 2104.2, 2168.6], [1595170800000, 2172.0, 2187.3, 2084.7, 2150.0], [1595775600000, 2118.6, 2182.2, 2089.0, 2139.0], [1596380400000, 2152.5, 2451.7, 2146.6, 2440.7], [1596985200000, 2440.7, 2576.2, 2355.9, 2513.5], [1597590000000, 2522.9, 2572.0, 2478.8, 2542.3], [1598194800000, 2567.8, 2580.5, 2453.4, 2472.9], [1598799600000, 2499.7, 2547.6, 2380.6, 2452.6], [1599404400000, 2467.1, 2538.2, 2422.6, 2510.8], [1600009200000, 2497.1, 2523.7, 2393.4, 2494.5], [1600614000000, 2494.5, 2557.9, 2451.7, 2530.5], [1601218800000, 2574.2, 2608.5, 2414.0, 2438.9], [1601823600000, 2483.4, 2548.5, 2427.7, 2493.7], [1602428400000, 2517.7, 2938.3, 2445.7, 2809.8], [1603033200000, 2929.7, 3036.8, 2848.3, 2916.9], [1603638000000, 2938.3, 3023.9, 2856.9, 2972.5], [1604242800000, 2946.8, 3015.4, 2822.6, 2882.6], [1604847600000, 2895.4, 2908.3, 2775.5, 2805.5], [1605452400000, 2788.4, 2831.2, 2715.5, 2784.1], [1606057200000, 2784.1, 2852.6, 2698.4, 2766.9], [1606662000000, 2762.7, 2766.9, 2621.3, 2681.3], [1607266800000, 2715.5, 2921.1, 2664.1, 2886.9], [1607871600000, 2921.1, 2934.0, 2831.2, 2865.5], [1608476400000, 2895.4, 2908.3, 2801.2, 2869.7], [1609081200000, 2874.0, 2921.1, 2852.6, 2882.6], [1609686000000, 2904.0, 3002.5, 2818.3, 2976.8], [1610290800000, 2976.8, 3255.2, 2976.8, 3092.5], [1610895600000, 3062.5, 3079.6, 2861.2, 2882.6], [1611500400000, 2865.5, 3011.1, 2861.2, 2981.1], [1612105200000, 2929.7, 3028.2, 2856.9, 2972.5], [1612710000000, 2976.8, 3032.5, 2976.8, 2994.0], [1613314800000, 2998.2, 3053.9, 2891.2, 2929.7], [1613919600000, 2968.3, 3006.8, 2801.2, 2801.2], [1614524400000, 2914.2, 2935.8, 2845.0, 2927.2], [1615129200000, 2961.8, 3069.9, 2888.3, 3069.9], [1615734000000, 3069.9, 3294.7, 3069.9, 3264.4], [1616338800000, 3203.9, 3359.6, 3199.6, 3359.6], [1616943600000, 3389.8, 3420.1, 3173.6, 3178.0], [1617548400000, 3178.0, 3234.2, 3117.4, 3156.4], [1618153200000, 3156.4, 3281.7, 3069.9, 3113.1], [1618758000000, 3113.1, 3126.1, 2853.7, 2871.0], [1619362800000, 2875.3, 2905.6, 2801.8, 2810.5], [1619967600000, 2810.5, 2966.1, 2810.5, 2884.0], [1620572400000, 2896.9, 2896.9, 2771.5, 2823.4], [1621177200000, 2853.7, 2862.3, 2797.5, 2827.7], [1621782000000, 2827.7, 2849.4, 2784.5, 2845.0], [1622386800000, 2845.0, 2871.0, 2767.2, 2814.8], [1622991600000, 2853.7, 2953.1, 2823.4, 2953.1], [1623596400000, 2987.7, 3031.0, 2884.0, 2922.9], [1624201200000, 2862.3, 2927.2, 2819.1, 2862.3], [1624806000000, 2888.3, 2918.5, 2845.0, 2905.6], [1625410800000, 2922.9, 2927.2, 2754.2, 2784.5], [1626015600000, 2823.4, 3169.3, 2823.4, 2957.5], [1626620400000, 2948.8, 3005.0, 2901.2, 2987.7], [1627225200000, 3022.3, 3134.7, 2931.5, 2948.8], [1627830000000, 2948.8, 3043.9, 2875.3, 2884.0], [1628434800000, 2884.0, 2948.8, 2871.0, 2884.0], [1629039600000, 2871.0, 2871.0, 2724.0, 2749.9], [1629644400000, 2793.2, 2832.1, 2732.6, 2767.2], [1630249200000, 2741.3, 2780.2, 2706.7, 2741.3], [1630854000000, 2776.0, 2793.4, 2736.6, 2776.0], [1631458800000, 2762.8, 2824.0, 2749.7, 2802.2], [1632063600000, 2802.2, 2802.2, 2697.3, 2758.5], [1632668400000, 2758.5, 2776.0, 2613.3, 2613.3], [1633273200000, 2657.9, 2657.9, 2529.4, 2533.8], [1633878000000, 2536.4, 2631.7, 2532.0, 2616.8], [1634482800000, 2621.2, 2701.6, 2558.3, 2671.0], [1635087600000, 2697.3, 2915.8, 2679.8, 2876.5], [1635692400000, 2894.0, 2985.8, 2894.0, 2963.9], [1636297200000, 2963.9, 3029.5, 2911.5, 2998.9], [1636902000000, 3003.3, 3068.9, 2924.6, 2981.4], [1637506800000, 2981.4, 3007.6, 2942.1, 2955.2], [1638111600000, 2898.4, 2950.8, 2819.7, 2907.1], [1638716400000, 2907.1, 3042.6, 2907.1, 3012.0], [1639321200000, 3033.9, 3042.6, 2972.7, 2994.5], [1639926000000, 2972.7, 3012.0, 2929.0, 2990.2], [1640530800000, 3016.4, 3116.9, 2985.8, 3042.6], [1641135600000, 3042.6, 3099.5, 3020.8, 3055.7], [1641740400000, 3055.7, 3304.9, 2977.0, 3169.4], [1642345200000, 3138.8, 3138.8, 2767.2, 2872.1], [1642950000000, 2867.8, 3025.1, 2810.9, 3025.1], [1643554800000, 3029.5, 3147.5, 2990.2, 3047.0], [1644159600000, 2885.2, 2968.3, 2789.1, 2880.9], [1644764400000, 2828.4, 2902.7, 2802.2, 2863.4], [1645369200000, 2832.8, 2841.5, 2710.4, 2793.4], [1645974000000, 2806.4, 3005.3, 2806.4, 2850.6], [1646578800000, 2850.6, 3014.1, 2766.6, 2824.1], [1647183600000, 2824.1, 2969.9, 2784.3, 2894.8], [1647788400000, 2894.8, 3031.8, 2881.5, 3023.0], [1648393200000, 3023.0, 3053.9, 2859.4, 2912.5], [1648998000000, 2939.0, 2987.6, 2868.3, 2912.5], [1649602800000, 2921.3, 2921.3, 2622.6, 2673.8], [1650207600000, 2647.3, 2819.7, 2628.7, 2665.0], [1650812400000, 2634.1, 2673.8, 2573.9, 2673.8], [1651417200000, 2669.4, 2704.8, 2660.6, 2700.3], [1652022000000, 2682.7, 2682.7, 2545.7, 2625.2], [1652626800000, 2660.6, 2665.0, 2571.3, 2633.2], [1653231600000, 2665.0, 2691.5, 2605.8, 2673.8], [1653836400000, 2695.9, 2740.1, 2669.4, 2700.3], [1654441200000, 2687.1, 2740.1, 2650.0, 2673.8], [1655046000000, 2669.4, 2726.9, 2632.3, 2709.2], [1655650800000, 2726.9, 2771.1, 2678.2, 2731.3], [1656255600000, 2775.5, 2810.8, 2718.0, 2731.3], [1656860400000, 2771.1, 2810.8, 2726.9, 2757.8], [1657465200000, 2775.5, 2912.5, 2709.2, 2762.2], [1658070000000, 2762.2, 2762.2, 2656.1, 2713.6], [1658674800000, 2704.8, 2735.7, 2678.2, 2695.9], [1659279600000, 2695.9, 2749.0, 2626.1, 2687.1], [1659884400000, 2687.1, 2722.4, 2646.4, 2713.6], [1660489200000, 2718.0, 2775.5, 2682.7, 2700.3], [1661094000000, 2682.7, 2709.2, 2660.6, 2673.8], [1661698800000, 2642.9, 2665.0, 2597.8, 2610.2], [1662303600000, 2638.3, 2675.9, 2589.1, 2614.1], [1662908400000, 2638.3, 2677.7, 2604.3, 2636.5], [1663513200000, 2636.5, 2657.1, 2607.9, 2650.9], [1664118000000, 2624.0, 2740.4, 2614.1, 2718.0], [1664722800000, 2727.0, 2803.1, 2682.2, 2744.9], [1665327600000, 2744.9, 2762.8, 2397.4, 2415.3], [1665932400000, 2435.9, 2535.3, 2399.2, 2399.2], [1666537200000, 2433.2, 2433.2, 2363.4, 2397.4], [1667142000000, 2413.5, 2451.1, 2407.3, 2413.5], [1667746800000, 2409.1, 2540.7, 2400.1, 2516.5], [1668351600000, 2505.8, 2584.6, 2478.9, 2565.8], [1668956400000, 2597.1, 2709.1, 2582.8, 2691.2], [1669561200000, 2672.4, 2672.4, 2540.7, 2558.6], [1670166000000, 2558.6, 2638.3, 2529.1, 2626.7], [1670770800000, 2610.6, 2656.2, 2588.2, 2630.3], [1671375600000, 2623.1, 2661.6, 2576.5, 2658.0], [1671980400000, 2660.7, 2709.1, 2641.9, 2658.9], [1672585200000, 2658.9, 2658.9, 2571.2, 2588.2], [1673190000000, 2588.2, 2612.3, 2537.1, 2537.1], [1673794800000, 2366.1, 2557.7, 2351.7, 2505.8], [1674399600000, 2507.6, 2598.9, 2504.9, 2598.0], [1675004400000, 2610.6, 2677.7, 2575.6, 2598.9], [1675609200000, 2613.2, 2641.0, 2537.1, 2542.5], [1676214000000, 2543.4, 2572.0, 2471.7, 2483.4], [1676818800000, 2472.6, 2507.6, 2461.9, 2504.0], [1677423600000, 2453.8, 2538.9, 2452.9, 2528.2], [1678028400000, 2563.9, 2627.5, 2541.2, 2589.4], [1678633200000, 2579.4, 2579.4, 2485.8, 2531.2], [1679238000000, 2512.2, 2584.8, 2503.1, 2574.8], [1679842800000, 2603.0, 2606.6, 2556.7, 2587.5], [1680447600000, 2593.0, 2625.7, 2556.7, 2563.0], [1681052400000, 2564.8, 2618.4, 2553.9, 2609.3], [1681657200000, 2633.9, 2751.9, 2565.7, 2714.7], [1682262000000, 2713.8, 2742.8, 2643.9, 2742.8], [1682866800000, 2770.1, 2806.4, 2751.9, 2774.6], [1683471600000, 2797.3, 2870.0, 2779.2, 2865.5], [1684076400000, 2892.7, 2933.6, 2842.8, 2870.0], [1684681200000, 2870.0, 2906.3, 2829.1, 2865.5], [1685286000000, 2906.3, 2906.3, 2765.6, 2856.4], [1685890800000, 2915.4, 2979.0, 2815.5, 2979.0], [1686495600000, 2992.6, 3051.6, 2920.0, 2938.1], [1687100400000, 2974.4, 2974.4, 2865.5, 2879.1], [1687705200000, 2897.2, 2933.6, 2820.0, 2851.8], [1688310000000, 2888.2, 2915.4, 2811.0, 2811.0], [1688914800000, 2815.5, 2906.3, 2801.9, 2847.3], [1689519600000, 2847.3, 3001.7, 2829.1, 2992.6], [1690124400000, 3028.9, 3051.6, 2969.9, 3001.7], [1690729200000, 3060.7, 3088.0, 2974.4, 3010.8], [1691334000000, 3006.2, 3128.8, 3006.2, 3110.7], [1691938800000, 3110.7, 3128.8, 3042.6, 3047.1], [1692543600000, 3047.1, 3101.6, 3033.5, 3051.6], [1693148400000, 3069.8, 3119.8, 3006.2, 3051.6], [1693753200000, 3090.1, 3145.3, 3067.1, 3076.3], [1694358000000, 3108.5, 3168.3, 3080.9, 3136.1], [1694962800000, 3136.1, 3186.7, 3099.3, 3186.7], [1695567600000, 3191.3, 3287.8, 3057.9, 3076.3], [1696172400000, 3103.9, 3108.5, 2910.8, 3044.1], [1696777200000, 3044.1, 3232.7, 2924.6, 3021.1], [1697382000000, 2998.1, 3021.1, 2777.4, 2864.8], [1697986800000, 2832.6, 2938.4, 2772.8, 2933.8], [1698591600000, 2869.4, 2993.5, 2818.8, 2943.0], [1699196400000, 2970.5, 3021.1, 2906.2, 3011.9], [1699801200000, 3011.9, 3076.3, 2970.5, 3039.5], [1700406000000, 3048.7, 3048.7, 2915.4, 2920.0], [1701010800000, 2956.7, 2988.9, 2920.0, 2965.9], [1701615600000, 2965.9, 3011.9, 2924.6, 2952.2], [1702220400000, 3016.5, 3048.7, 2975.1, 3007.3], [1702825200000, 2979.7, 3034.9, 2943.0, 3021.1], [1703430000000, 3039.5, 3044.1, 2998.1, 3030.3], [1704034800000, 3030.3, 3099.3, 3011.9, 3067.1], [1704639600000, 3067.1, 3191.3, 3067.1, 3131.5], [1705244400000, 3011.9, 3071.7, 2965.9, 3067.1], [1705849200000, 3090.1, 3159.1, 3030.3, 3034.9], [1706454000000, 3039.5, 3103.9, 3025.7, 3039.5], [1707058800000, 3016.5, 3016.5, 2924.6, 2979.7], [1707663600000, 3007.3, 3044.1, 2901.6, 2924.6], [1708268400000, 2924.6, 2961.3, 2906.2, 2924.6], [1708873200000, 2929.2, 2961.3, 2805.0, 2823.4], [1709478000000, 2860.9, 3075.2, 2828.3, 3061.2], [1710082800000, 3056.6, 3056.6, 2930.8, 3010.0], [1710687600000, 3005.3, 3187.0, 2977.4, 3154.4], [1711292400000, 3126.5, 3219.7, 3093.9, 3131.1], [1711897200000, 3112.5, 3149.8, 3000.7, 3103.2], [1712502000000, 3112.5, 3187.0, 3098.5, 3168.4], [1713106800000, 3135.8, 3182.4, 2784.5, 2800.3], [1713711600000, 2832.9, 2879.5, 2771.4, 2819.0], [1714316400000, 2819.0, 2856.2, 2781.7, 2800.3], [1714921200000, 2805.0, 2902.8, 2778.9, 2902.8], [1715526000000, 2893.5, 2898.2, 2805.0, 2819.0], [1716130800000, 2819.0, 2837.6, 2692.2, 2729.5], [1716735600000, 2741.6, 2741.6, 2613.9, 2649.3], [1717340400000, 2674.5, 2721.1, 2666.1, 2673.6], [1717945200000, 2685.7, 2744.4, 2665.2, 2689.4], [1718550000000, 2689.4, 2743.5, 2640.0, 2702.5], [1719154800000, 2714.6, 2782.6, 2708.1, 2708.1], [1719759600000, 2738.8, 2743.5, 2684.8, 2684.8], [1720364400000, 2684.8, 2724.8, 2641.9, 2704.3], [1720969200000, 2674.5, 2860.9, 2658.7, 2828.3], [1721574000000, 2832.9, 2846.9, 2756.5, 2805.0], [1722178800000, 2828.3, 2865.5, 2517.0, 2524.5], [1722783600000, 2441.5, 2490.0, 2283.1, 2423.8], [1723388400000, 2423.8, 2449.0, 2370.7, 2447.1], [1723993200000, 2450.9, 2526.3, 2443.4, 2506.8], [1724598000000, 2505.8, 2562.7, 2455.5, 2500.2], [1725202800000, 2565.2, 2605.0, 2529.2, 2552.0], [1725807600000, 2504.6, 2571.9, 2483.8, 2495.1], [1726412400000, 2517.9, 2656.2, 2507.5, 2642.9], [1727017200000, 2652.4, 2683.7, 2597.4, 2661.9], [1727622000000, 2616.4, 2666.6, 2599.3, 2645.8], [1728226800000, 2671.3, 2705.4, 2613.6, 2676.1], [1728831600000, 2644.8, 2718.7, 2589.9, 2641.0], [1729436400000, 2662.8, 2688.4, 2599.3, 2599.3], [1730041200000, 2599.3, 2708.3, 2599.3, 2642.9], [1730646000000, 2642.9, 2670.4, 2598.4, 2599.3], [1731250800000, 2594.6, 2594.6, 2506.5, 2517.9], [1731855600000, 2509.4, 2522.6, 2467.7, 2502.7], [1732460400000, 2521.7, 2532.1, 2451.6, 2489.5], [1733065200000, 2490.4, 2578.5, 2490.4, 2570.0], [1733670000000, 2572.8, 2611.7, 2567.1, 2567.1], [1734274800000, 2566.2, 2593.7, 2542.5, 2565.2], [1734879600000, 2557.7, 2613.6, 2523.6, 2611.7], [1735484400000, 2587.0, 2618.3, 2587.0, 2592.7], [1736089200000, 2596.5, 2603.1, 2462.9, 2462.9], [1736694000000, 2462.9, 2505.6, 2379.6, 2425.0], [1737298800000, 2437.4, 2442.1, 2382.4, 2385.3], [1737903600000, 2396.6, 2434.5, 2376.7, 2380.5], [1738508400000, 2370.1, 2370.1, 2231.8, 2255.5], [1739113200000, 2241.3, 2273.5, 2230.8, 2253.6], [1739718000000, 2247.9, 2265.9, 2175.0, 2256.4], [1740322800000, 2256.4, 2275.4, 2203.4, 2248.8], [1740927600000, 2315.1, 2417.4, 2310.2, 2386.5], [1741532400000, 2406.8, 2457.0, 2381.7, 2403.9], [1742137200000, 2403.9, 2509.1, 2403.9, 2448.3], [1742742000000, 2470.5, 2486.9, 2428.0, 2456.0], [1743346800000, 2437.7, 2456.0, 2287.1, 2318.0], [1743951600000, 2200.2, 2385.5, 2145.1, 2374.0], [1744556400000, 2413.5, 2599.9, 2397.1, 2595.0], [1745161200000, 2606.6, 2677.1, 2565.1, 2590.2], [1745766000000, 2578.6, 2621.1, 2480.1, 2524.6], [1746370800000, 2524.6, 2627.9, 2519.7, 2592.1], [1746975600000, 2576.7, 2605.7, 2473.4, 2559.3], [1747580400000, 2558.3, 2598.9, 2529.4, 2559.3], [1748185200000, 2569.0, 2576.7, 2490.8, 2523.6], [1748790000000, 2523.6, 2551.6, 2490.8, 2527.5], [1749394800000, 2537.1, 2538.1, 2468.6, 2478.2], [1749999600000, 2488.8, 2508.1, 2468.6, 2490.8], [1750604400000, 2485.0, 2544.8, 2468.6, 2522.6], [1751209200000, 2529.4, 2559.3, 2525.5, 2547.7], [1751814000000, 2541.9, 2597.9, 2502.4, 2545.8], [1752418800000, 2580.6, 2597.9, 2430.9, 2438.6], [1753023600000, 2438.6, 2539.0, 2438.6, 2526.5], [1753628400000, 2530.3, 2611.4, 2527.5, 2611.4], [1754233200000, 2592.1, 2645.2, 2569.0, 2629.8], [1754838000000, 2635.6, 2651.0, 2601.8, 2606.6], [1755442800000, 2613.4, 2672.3, 2612.4, 2663.6], [1756047600000, 2651.0, 2679.0, 2574.8, 2607.6], [1756652400000, 2657.8, 2733.6, 2638.1, 2715.8], [1757257200000, 2719.8, 2754.2, 2671.6, 2672.5], [1757862000000, 2672.5, 2713.9, 2669.6, 2674.5], [1758466800000, 2673.5, 2735.5, 2673.5, 2735.5], [1759071600000, 2726.7, 2735.5, 2584.0, 2586.0], [1759676400000, 2630.2, 2649.9, 2533.8, 2565.3], [1760281200000, 2534.8, 2578.1, 2484.6, 2492.5], [1760886000000, 2504.3, 2536.8, 2471.8, 2523.0], [1761490800000, 2538.7, 2564.3, 2438.4, 2460.0], [1762095600000, 2455.1, 2521.0, 2452.1, 2504.3], [1762700400000, 2511.2, 2538.7, 2490.5, 2525.9], [1763305200000, 2525.9, 2583.0, 2508.2, 2579.1], [1763910000000, 2579.1, 2617.4, 2564.3, 2607.6], [1764514800000, 2607.6, 2607.6, 2533.8, 2543.6], [1765119600000, 2563.3, 2607.6, 2556.4, 2570.2], [1765724400000, 2570.2, 2697.1, 2570.2, 2673.5], [1766329200000, 2698.1, 2698.1, 2633.2, 2645.0], [1766934000000, 2654.8, 2698.1, 2639.1, 2678.4], [1767538800000, 2670.6, 2735.5, 2653.8, 2720.8], [1768143600000, 2735.5, 3025.8, 2709.9, 2981.5], [1768748400000, 3001.2, 3075.0, 2966.8, 3025.8], [1769353200000, 3016.0, 3075.0, 2915.6, 2986.4], [1769958000000, 3040.6, 3109.4, 2986.4, 3065.2], [1770562800000, 3089.8, 3183.2, 3055.3, 3139.0], [1771167600000, 3134.0, 3148.8, 3075.0, 3129.1], [1771772400000, 3153.7, 3232.4, 3050.4, 3148.8], [1772377200000, 3160.0, 3225.0, 2946.0, 3030.0], [1772982000000, 2944.0, 3025.0, 2903.0, 2909.0], [1773586800000, 2900.0, 3005.0, 2890.0, 2920.0], [1774191600000, 2890.0, 3060.0, 2839.0, 3035.0], [1774796400000, 2965.0, 3095.0, 2934.0, 3055.0], [1775401200000, 3055.0, 3155.0, 3040.0, 3045.0]];
+  const options = {
+    series: [{ name: '週足', data: seriesData }],
+    chart: {
+      type: 'candlestick',
+      height: 420,
+      toolbar: { show: true },
+      animations: { enabled: false }
+    },
+    title: { text: '2292 エスフーズ 週足株価 (10年)', align: 'left', style: { fontSize: '14px', fontFamily: 'Noto Sans JP' } },
+    xaxis: {
+      type: 'datetime',
+      labels: { datetimeUTC: false, format: "yy/MM" },
+      tickAmount: 20
+    },
+    yaxis: {
+      tooltip: { enabled: true },
+      labels: { formatter: v => '¥' + v.toLocaleString() }
+    },
+    plotOptions: {
+      candlestick: {
+        colors: { upward: '#10b981', downward: '#ef4444' },
+        wick: { useFillColor: true }
+      }
+    },
+    tooltip: {
+      x: { format: 'yyyy/MM/dd' }
+    },
+    grid: { borderColor: '#e2e8f0' }
+  };
+  new ApexCharts(document.querySelector('#chart-candle'), options).render();
+})();
+
+// ─────────────────────────────────────────────
+//  Helper: Chart.js defaults
+// ─────────────────────────────────────────────
+Chart.defaults.font.family = 'Noto Sans JP';
+Chart.defaults.font.size = 12;
+
+const LABELS = ["16/02", "17/02", "18/02", "19/02", "20/02", "21/02", "22/02", "23/02", "24/02", "25/02"];
+const BLUE   = '#1a56db';
+const AMBER  = '#f59e0b';
+const GREEN  = '#10b981';
+const RED    = '#ef4444';
+
+// ─────────────────────────────────────────────
+//  SECTION 2: 業績推移 (Bar+Line)
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-perf'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'bar', label: '売上高(億)', data: [3143, 3167, 3307, 3517, 3641, 3422, 3755, 4126, 4245, 4445],
+        backgroundColor: 'rgba(26,86,219,0.18)', borderColor: BLUE, borderWidth: 1.5,
+        yAxisID: 'y1'
+      },
+      {
+        type: 'line', label: '営業利益(億)', data: [41.0, 35.4, 47.9, 58.7, 47.5, 20.9, 24.1, 27.0, 19.7, 5.1],
+        borderColor: GREEN, backgroundColor: 'rgba(16,185,129,0.15)',
+        tension: 0.3, pointRadius: 4, yAxisID: 'y2'
+      },
+      {
+        type: 'line', label: '純利益(億)', data: [27.5, 24.4, 33.5, 41.0, 35.3, 14.7, 20.0, 21.9, 17.5, 4.3],
+        borderColor: AMBER, backgroundColor: 'rgba(245,158,11,0.15)',
+        tension: 0.3, pointRadius: 4, yAxisID: 'y2'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      y1: { type: 'linear', position: 'left', title: { display: true, text: '売上高(億円)' }, grid: { color: '#e2e8f0' } },
+      y2: { type: 'linear', position: 'right', title: { display: true, text: '利益(億円)' }, grid: { drawOnChartArea: false } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 3: 利益率・ROE
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-margin'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'line', label: '営業利益率(%)', data: [1.3, 1.12, 1.45, 1.67, 1.3, 0.61, 0.64, 0.65, 0.46, 0.11],
+        borderColor: BLUE, tension: 0.3, pointRadius: 4
+      },
+      {
+        type: 'line', label: '純利益率(%)', data: [0.87, 0.77, 1.01, 1.17, 0.97, 0.43, 0.53, 0.53, 0.41, 0.1],
+        borderColor: AMBER, tension: 0.3, pointRadius: 4
+      },
+      {
+        type: 'line', label: 'ROE(%)', data: [6.8, 5.86, 7.63, 8.86, 7.39, 3.11, 4.17, 4.47, 3.53, 0.88],
+        borderColor: GREEN, tension: 0.3, pointRadius: 4
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { title: { display: true, text: '(%)' }, grid: { color: '#e2e8f0' } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 4: Valuation
+// ─────────────────────────────────────────────
+const perCapped = [8.94, 9.39, 10.33, 8.2, 6.44, 15.21, 11.95, 10.2, 12.16, 30];
+new Chart(document.getElementById('chart-val'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'bar', label: 'PER(x, cap30)', data: perCapped,
+        backgroundColor: 'rgba(26,86,219,0.25)', yAxisID: 'y1'
+      },
+      {
+        type: 'line', label: 'PBR(x)', data: [0.61, 0.55, 0.79, 0.73, 0.48, 0.47, 0.5, 0.46, 0.43, 0.44],
+        borderColor: GREEN, tension: 0.3, pointRadius: 4, yAxisID: 'y2'
+      },
+      {
+        type: 'line', label: 'EV/EBITDA(x)', data: [5.8, 5.7, 6.5, 5.9, 4.7, 7.2, 6.1, 5.8, 6.9, 8.9],
+        borderColor: AMBER, tension: 0.3, pointRadius: 4, yAxisID: 'y1'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y1: { type: 'linear', position: 'left', title: { display: true, text: 'PER / EV/EBITDA (x)' }, grid: { color: '#e2e8f0' } },
+      y2: { type: 'linear', position: 'right', title: { display: true, text: 'PBR (x)' }, grid: { drawOnChartArea: false }, max: 1.5 }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 5: EPS/BPS
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-eps'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'bar', label: 'EPS(円)', data: [353.5, 313.5, 430.2, 526.7, 453.3, 188.7, 256.9, 280.9, 224.5, 55.6],
+        backgroundColor: 'rgba(26,86,219,0.25)', yAxisID: 'y1'
+      },
+      {
+        type: 'line', label: 'BPS(円)', data: [5192, 5348, 5639, 5940, 6129, 6062, 6151, 6289, 6368, 6283],
+        borderColor: GREEN, tension: 0.3, pointRadius: 4, yAxisID: 'y2'
+      },
+      {
+        type: 'bar', label: 'DPS(円)', data: [65, 65, 75, 89, 84, 74, 79, 84, 84, 89],
+        backgroundColor: 'rgba(245,158,11,0.5)', yAxisID: 'y1'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y1: { type: 'linear', position: 'left', title: { display: true, text: 'EPS/DPS (円)' }, grid: { color: '#e2e8f0' } },
+      y2: { type: 'linear', position: 'right', title: { display: true, text: 'BPS (円)' }, grid: { drawOnChartArea: false } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 6: NCA vs Market Cap
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-nca'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'bar', label: '流動資産-負債 NCA(億)', data: [120, 134, 123, 133, 151, 193, 132, 97, 100, 71],
+        backgroundColor: 'rgba(16,185,129,0.35)', yAxisID: 'y1'
+      },
+      {
+        type: 'line', label: '時価総額(億)', data: [246, 229, 346, 336, 228, 224, 239, 223, 213, 216],
+        borderColor: BLUE, tension: 0.3, pointRadius: 4, yAxisID: 'y1'
+      },
+      {
+        type: 'line', label: '倍率(時価/NCA)', data: [2.05, 1.71, 2.81, 2.53, 1.51, 1.16, 1.81, 2.3, 2.13, 3.04],
+        borderColor: RED, tension: 0.3, pointRadius: 4, yAxisID: 'y2'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y1: { type: 'linear', position: 'left', title: { display: true, text: '億円' }, grid: { color: '#e2e8f0' } },
+      y2: { type: 'linear', position: 'right', title: { display: true, text: '倍率' }, grid: { drawOnChartArea: false } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 7: Debt vs Cash
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-debt'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'bar', label: '有利子負債(億)', data: [98, 104, 119, 146, 157, 163, 219, 337, 463, 445],
+        backgroundColor: 'rgba(239,68,68,0.4)', yAxisID: 'y1'
+      },
+      {
+        type: 'bar', label: '現金・預金(億)', data: [143, 137, 134, 157, 148, 209, 172, 149, 176, 176],
+        backgroundColor: 'rgba(26,86,219,0.35)', yAxisID: 'y1'
+      },
+      {
+        type: 'line', label: 'ネット有利子負債(億)',
+        data: [-45, -33, -15, -11, 9, -46, 47, 188, 287, 269],
+        borderColor: AMBER, tension: 0.3, pointRadius: 4, yAxisID: 'y1',
+        borderDash: [5,3]
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y1: { title: { display: true, text: '億円' }, grid: { color: '#e2e8f0' } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 8: Turnover Ratios
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-turn'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'line', label: '売掛金比率', data: [0.104, 0.1, 0.101, 0.098, 0.099, 0.097, 0.099, 0.097, 0.1, 0.102],
+        borderColor: BLUE, tension: 0.3, pointRadius: 5
+      },
+      {
+        type: 'line', label: '棚卸資産比率', data: [0.069, 0.072, 0.076, 0.079, 0.083, 0.088, 0.085, 0.076, 0.074, 0.073],
+        borderColor: AMBER, tension: 0.3, pointRadius: 5
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { title: { display: true, text: '比率 (残高÷売上原価)' }, grid: { color: '#e2e8f0' } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 9: CF
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-cf'), {
+  data: {
+    labels: LABELS,
+    datasets: [
+      {
+        type: 'bar', label: '営業CF(億)', data: [56.3, 46.2, 65.1, 78.5, 61.3, 74.8, 38.4, 25.6, 63.5, 43.2],
+        backgroundColor: 'rgba(16,185,129,0.5)'
+      },
+      {
+        type: 'bar', label: '投資CF(億)', data: [-45.2, -52.8, -68.4, -75.2, -72.1, -59.6, -74.2, -98.3, -89.4, -79.6],
+        backgroundColor: 'rgba(239,68,68,0.5)'
+      },
+      {
+        type: 'bar', label: '財務CF(億)', data: [-13.5, -10.1, -5.3, -12.1, -8.5, -18.4, -13.5, 51.8, 22.8, 24.1],
+        backgroundColor: 'rgba(245,158,11,0.5)'
+      },
+      {
+        type: 'line', label: 'FCF(億)', data: [11.1, -6.6, -3.3, 3.3, -10.8, 15.2, -35.8, -72.7, -25.9, -36.4],
+        borderColor: BLUE, tension: 0.3, pointRadius: 5,
+        borderWidth: 2.5
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { title: { display: true, text: '億円' }, grid: { color: '#e2e8f0' } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 10: Quarterly Chart
+// ─────────────────────────────────────────────
+new Chart(document.getElementById('chart-qtr'), {
+  data: {
+    labels: ["FY25 Q1", "FY25 Q2", "FY25 Q3", "FY25 Q4", "FY26 Q1", "FY26 Q2", "FY26 Q3"],
+    datasets: [
+      {
+        type: 'bar', label: '売上(億)/10', data: [110.9, 113.1, 110.5, 110.0, 112.7, 116.5, 111.8],
+        backgroundColor: 'rgba(26,86,219,0.2)', yAxisID: 'y1'
+      },
+      {
+        type: 'line', label: '営業利益(億)', data: [5.1, 4.7, -0.4, -4.3, 4.5, 3.6, 2.5],
+        borderColor: GREEN, tension: 0.3, pointRadius: 5, yAxisID: 'y2'
+      },
+      {
+        type: 'line', label: '純利益(億)', data: [4.4, 3.8, 1.2, -5.1, 4.1, 3.2, 2.3],
+        borderColor: AMBER, tension: 0.3, pointRadius: 5, yAxisID: 'y2'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y1: { type: 'linear', position: 'left', title: { display: true, text: '売上/10(億)' }, grid: { color: '#e2e8f0' } },
+      y2: { type: 'linear', position: 'right', title: { display: true, text: '利益(億)' }, grid: { drawOnChartArea: false } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SECTION 13: PL Waterfall (ApexCharts)
+// ─────────────────────────────────────────────
+(function() {
+  const wfSeries = [{
+    name: 'PL',
+    data: [
+      { x: '売上高', y: [0, 4445], fillColor: '#1a56db' },
+      { x: '売上原価', y: [4445, 351], fillColor: '#ef4444' },
+      { x: '粗利', y: [0, 351], fillColor: '#10b981' },
+      { x: '販管費', y: [351, 5.1], fillColor: '#f59e0b' },
+      { x: '営業利益', y: [0, 5.1], fillColor: '#1a56db' },
+      { x: '営業外損益', y: [5.1, 6.4], fillColor: '#10b981' },
+      { x: '経常利益', y: [0, 6.4], fillColor: '#1a56db' },
+      { x: '法税等', y: [6.4, 4.3], fillColor: '#ef4444' },
+      { x: '純利益', y: [0, 4.3], fillColor: '#10b981' }
+    ]
+  }];
+
+  new ApexCharts(document.getElementById('chart-wf'), {
+    series: wfSeries,
+    chart: { type: 'rangeBar', height: 340, toolbar: { show: false }, animations: { enabled: false } },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '60%',
+        dataLabels: { position: 'top' }
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function(val) {
+        const diff = val[1] - val[0];
+        return diff >= 0 ? '+' + diff.toFixed(1) : diff.toFixed(1);
+      },
+      style: { fontSize: '11px', fontFamily: 'Noto Sans JP' }
+    },
+    xaxis: { type: 'category', labels: { style: { fontSize: '11px' } } },
+    yaxis: { title: { text: '億円' }, labels: { formatter: v => v.toFixed(0) } },
+    tooltip: {
+      y: {
+        formatter: function(val, opts) {
+          const d = opts.w.config.series[0].data[opts.dataPointIndex];
+          return (d.y[1] - d.y[0]).toFixed(1) + '億円';
+        }
+      }
+    },
+    title: { text: '2025/02 PL構造 (億円)', align: 'left', style: { fontSize: '13px', fontFamily: 'Noto Sans JP' } },
+    grid: { borderColor: '#e2e8f0' }
+  }).render();
+})();
+
+// ─── 中期経営計画チャート ───
+(function(){
+  const ctx = document.getElementById('chart-chuki');
+  if (!ctx) return;
+  const labels = ['FY2025/02\n実績', 'FY2026/02\n2025計画', 'FY2027/02\n2025計画', 'FY2028/02\n2025計画'];
+  const labels2 = ['FY2025/02\n実績', 'FY2026/02\n2024計画', 'FY2026/02\n2025計画', 'FY2027/02\n2024計画', 'FY2027/02\n2025計画', 'FY2028/02\n2025計画'];
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['FY25/02実績', 'FY26/02\n2025計画', 'FY27/02\n2025計画', 'FY28/02\n2025計画',
+               '', 'FY26/02\n2024計画', 'FY27/02\n2024計画'],
+      datasets: [
+        {
+          label: '売上高（億円）',
+          data: [4445, 4750, 5700, 6000, null, 4700, 5400],
+          backgroundColor: ['#94a3b8','#1a56db','#1a56db','#1a56db',
+                            'transparent','#60a5fa','#60a5fa'],
+          yAxisID: 'y1',
+          order: 2,
+        },
+        {
+          label: '営業利益（億円）',
+          data: [51.4, 75, 100, 150, null, 117, 200],
+          type: 'line',
+          borderColor: '#10b981',
+          backgroundColor: 'transparent',
+          pointBackgroundColor: ['#94a3b8','#10b981','#10b981','#10b981',
+                                  'transparent','#6ee7b7','#6ee7b7'],
+          pointRadius: [5,6,6,6,0,5,5],
+          borderDash: [0,0,0,0,0,5,5],
+          yAxisID: 'y2',
+          tension: 0.3,
+          order: 1,
+        },
+        {
+          label: 'ROE（%）',
+          data: [2.2, 3.7, 5.7, 8.0, null, 6.4, 10.0],
+          type: 'line',
+          borderColor: '#f59e0b',
+          backgroundColor: 'transparent',
+          pointBackgroundColor: ['#94a3b8','#f59e0b','#f59e0b','#f59e0b',
+                                  'transparent','#fde68a','#fde68a'],
+          pointRadius: [5,6,6,6,0,5,5],
+          borderDash: [0,0,0,0,0,5,5],
+          yAxisID: 'y3',
+          tension: 0.3,
+          order: 1,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx2 => {
+              const v = ctx2.parsed.y;
+              if (v === null) return null;
+              if (ctx2.dataset.label.includes('売上')) return `売上高: ${v}億円`;
+              if (ctx2.dataset.label.includes('営業')) return `営業利益: ${v}億円`;
+              return `ROE: ${v}%`;
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            divider: {
+              type: 'line',
+              xMin: 3.5, xMax: 3.5,
+              borderColor: '#e2e8f0',
+              borderWidth: 2,
+              borderDash: [6,3],
+              label: { content: '計画比較', display: true, position: 'start', font: {size: 10}, color: '#94a3b8' }
+            }
+          }
+        }
+      },
+      scales: {
+        y1: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: '売上高（億円）', font: {size:11} },
+          grid: { color: '#e2e8f0' }
+        },
+        y2: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: '営業利益（億円）', font: {size:11} },
+          grid: { drawOnChartArea: false }
+        },
+        y3: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: 'ROE（%）', font: {size:11} },
+          grid: { drawOnChartArea: false },
+          offset: true
+        }
+      }
+    }
+  });
+})();
+
+</script>
+</body>
+</html>
