@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エスフーズ (2292) — 变化轨迹 ＋ 催化剂分析</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --card2: #f0f3f9;
+    --border: #dde3f0;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --green: #16a34a;
+    --green-bg: #dcfce7;
+    --red: #dc2626;
+    --red-bg: #fee2e2;
+    --yellow: #d97706;
+    --yellow-bg: #fef3c7;
+    --teal: #0891b2;
+    --teal-bg: #cffafe;
+    --orange: #ea580c;
+    --orange-bg: #ffedd5;
+    --text: #1e2235;
+    --muted: #6b7280;
+    --sub: #9ca3af;
+    --font: 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    --shadow: 0 1px 4px rgba(30,34,53,0.07), 0 4px 16px rgba(30,34,53,0.05);
+    --shadow-sm: 0 1px 3px rgba(30,34,53,0.08);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; }
+
+  /* HEADER */
+  .header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 6px rgba(30,34,53,0.06);
+  }
+  .header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; color: var(--text); }
+  .header-left h1 span { color: var(--accent); }
+  .header-left p { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .header-right { text-align: right; }
+  .badge {
+    display: inline-block; background: var(--card2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 3px 12px; font-size: 12px; color: var(--muted);
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1300px; margin: 0 auto; padding: 22px 32px; }
+  .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .grid-full { margin-bottom: 18px; }
+
+  /* KPI */
+  .kpi {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+    box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+  }
+  .kpi::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    border-radius: 0 0 12px 12px;
+  }
+  .kpi.blue::after   { background: var(--accent); }
+  .kpi.green::after  { background: var(--green); }
+  .kpi.yellow::after { background: var(--yellow); }
+  .kpi.teal::after   { background: var(--teal); }
+  .kpi.red::after    { background: var(--red); }
+  .kpi.orange::after { background: var(--orange); }
+  .kpi-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; }
+  .kpi-val { font-size: 24px; font-weight: 700; margin: 6px 0 2px; line-height: 1.2; }
+  .kpi-val.blue   { color: var(--accent); }
+  .kpi-val.green  { color: var(--green); }
+  .kpi-val.yellow { color: var(--yellow); }
+  .kpi-val.teal   { color: var(--teal); }
+  .kpi-val.red    { color: var(--red); }
+  .kpi-val.orange { color: var(--orange); }
+  .kpi-sub { font-size: 11px; color: var(--sub); line-height: 1.4; margin-top: 2px; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 15px; font-weight: 700; color: var(--text);
+    margin: 28px 0 14px; padding-left: 12px;
+    border-left: 4px solid var(--accent);
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* TIMELINE */
+  .timeline { position: relative; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 114px;
+    top: 0; bottom: 40px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--border) 0%, var(--border) 85%, transparent 100%);
+  }
+  .tl-node { display: flex; align-items: flex-start; margin-bottom: 4px; }
+  .phase-tag {
+    width: 88px; flex-shrink: 0;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 6px; border-radius: 6px;
+    text-align: center; line-height: 1.3;
+    margin-top: 15px;
+  }
+  .ph-peak   { background: #dbeafe; color: var(--accent); border: 1px solid #93c5fd; }
+  .ph-trough { background: var(--red-bg); color: var(--red); border: 1px solid #fca5a5; }
+  .ph-turn   { background: var(--yellow-bg); color: var(--yellow); border: 1px solid #fcd34d; }
+  .ph-now    { background: var(--teal-bg); color: var(--teal); border: 1px solid #67e8f9; }
+  .ph-future { background: var(--green-bg); color: var(--green); border: 1px solid #86efac; }
+  .ph-blank  { visibility: hidden; }
+
+  .dot-wrap {
+    width: 30px; flex-shrink: 0;
+    display: flex; justify-content: center;
+    padding-top: 15px;
+    position: relative; z-index: 2;
+  }
+  .tl-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2.5px solid white; flex-shrink: 0;
+  }
+  .d-blue   { background: var(--accent); }
+  .d-red    { background: var(--red); }
+  .d-yellow { background: var(--yellow); }
+  .d-teal   {
+    background: var(--teal);
+    width: 18px; height: 18px; margin-top: -2px;
+    box-shadow: 0 0 0 4px var(--teal-bg);
+    animation: tl-pulse 2.5s ease-in-out infinite;
+  }
+  .d-green  { background: var(--green); }
+  .d-sm     { width: 10px; height: 10px; margin-top: 2px; }
+  @keyframes tl-pulse {
+    0%,100% { box-shadow: 0 0 0 4px var(--teal-bg); }
+    50%      { box-shadow: 0 0 0 7px rgba(8,145,178,0.12); }
+  }
+
+  .tl-card {
+    flex: 1;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 13px 16px;
+    margin: 6px 0 6px 10px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .18s, border-color .18s;
+  }
+  .tl-card:hover { box-shadow: var(--shadow); border-color: #b6c4e4; }
+  .tl-card.c-blue   { border-left: 3px solid var(--accent); background: #f9faff; }
+  .tl-card.c-red    { border-left: 3px solid var(--red);    background: #fffbfb; }
+  .tl-card.c-yellow { border-left: 3px solid var(--yellow); background: #fffef8; }
+  .tl-card.c-teal   { border-left: 3px solid var(--teal);   background: #f5fbfd; border-color: #a8d8e6; }
+  .tl-card.c-green  { border-left: 3px solid var(--green);  background: #f8fdf9; }
+  .tl-card.dashed   { border-style: dashed; border-left-style: solid; }
+
+  .tl-date {
+    font-size: 10.5px; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.04em; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .now-pill {
+    background: var(--teal); color: white;
+    font-size: 9px; font-weight: 700; padding: 1px 7px;
+    border-radius: 3px; letter-spacing: 0.06em;
+  }
+  .future-pill {
+    background: var(--card2); color: var(--muted);
+    font-size: 9px; font-weight: 600; padding: 1px 7px;
+    border-radius: 3px; letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+  }
+  .tl-title { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.5; margin-bottom: 5px; }
+  .tl-body  { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  .pill {
+    display: inline-block; border-radius: 20px; padding: 1px 8px;
+    font-size: 10px; font-weight: 600; margin: 2px 2px 0 0;
+  }
+  .pill-red    { background: var(--red-bg);    color: var(--red); }
+  .pill-yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .pill-green  { background: var(--green-bg);  color: var(--green); }
+  .pill-blue   { background: #dbeafe;          color: var(--accent); }
+  .pill-teal   { background: var(--teal-bg);   color: var(--teal); }
+  .pill-orange { background: var(--orange-bg); color: var(--orange); }
+
+  /* CATALYST MATRIX */
+  .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .matrix-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .matrix-card.pos-card { background: #f8fdf9; border-color: #86efac; }
+  .matrix-card.neg-card { background: #fffbfb; border-color: #fca5a5; }
+  .matrix-card h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .matrix-card h4.pos-h { color: var(--green); }
+  .matrix-card h4.neg-h { color: var(--red); }
+  .matrix-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+  }
+  .matrix-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .matrix-item .rank { font-size: 10px; font-weight: 700; color: var(--sub); flex-shrink: 0; margin-top: 2px; width: 16px; }
+  .matrix-item .content { flex: 1; }
+  .matrix-item .mtitle { color: var(--text); font-weight: 600; line-height: 1.4; }
+  .matrix-item .mnote { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+
+  /* PERFORMANCE TABLE */
+  .perf-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .perf-table th {
+    background: var(--card2); color: var(--muted);
+    padding: 9px 14px; text-align: left; font-weight: 600;
+    border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .perf-table th.num { text-align: right; }
+  .perf-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .perf-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .perf-table tr:last-child td { border-bottom: none; }
+  .perf-table tr:hover td { background: #f8faff; }
+  .row-trough td { background: #fff5f5 !important; }
+  .row-now td { background: #f0fbff !important; }
+  .row-future td { background: #f0fdf4 !important; }
+
+  .chg-up   { color: var(--green); font-weight: 700; }
+  .chg-down { color: var(--red);   font-weight: 700; }
+  .chg-flat { color: var(--muted); }
+
+  /* KEY DATES */
+  .date-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .date-table th {
+    background: var(--card2); color: var(--muted);
+    padding: 9px 14px; text-align: left; font-weight: 600;
+    border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .date-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .date-table tr:last-child td { border-bottom: none; }
+  .date-table tr:hover td { background: #f8faff; }
+  .date-col { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .event-col { color: var(--text); line-height: 1.5; }
+  .note-col  { color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+
+  /* SEGMENT BARS */
+  .seg-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+  .seg-label { width: 120px; flex-shrink: 0; color: var(--muted); font-size: 11px; }
+  .seg-bar-bg { flex: 1; background: var(--card2); border-radius: 4px; height: 8px; }
+  .seg-bar { height: 8px; border-radius: 4px; }
+  .seg-val { width: 80px; text-align: right; flex-shrink: 0; font-weight: 600; color: var(--text); font-size: 11px; }
+
+  /* VERDICT */
+  .verdict {
+    background: var(--teal-bg); border: 1px solid #a5d5e0;
+    border-left: 4px solid var(--teal);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px; margin-top: 20px;
+  }
+  .verdict-label {
+    font-size: 10.5px; font-weight: 700; color: var(--teal);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .verdict-text { font-size: 12.5px; color: #1e4a5a; line-height: 1.85; }
+  .verdict-text strong { color: #0c3040; font-weight: 700; }
+
+  /* CONCLUSION LIST */
+  .conclusion-list { list-style: none; }
+  .conclusion-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; line-height: 1.65;
+  }
+  .conclusion-list li:last-child { border-bottom: none; padding-bottom: 0; }
+  .c-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; font-size: 11px; font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .c-num.pos  { background: var(--green-bg); color: var(--green); }
+  .c-num.warn { background: var(--yellow-bg); color: var(--yellow); }
+  .c-num.neg  { background: var(--red-bg); color: var(--red); }
+  .c-num.info { background: #dbeafe; color: var(--accent); }
+  .c-num.teal { background: var(--teal-bg); color: var(--teal); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 24px; padding: 14px 32px;
+    border-top: 1px solid var(--border); text-align: center;
+    font-size: 11px; color: var(--sub); background: var(--card);
+  }
+
+  @media (max-width: 760px) {
+    .header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 8px; }
+    .container { padding: 14px 16px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .matrix-grid { grid-template-columns: 1fr; }
+    .timeline::before { left: 104px; }
+    .phase-tag { width: 78px; font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>エスフーズ <span>(2292)</span> — 变化轨迹 ＋ 催化剂分析</h1>
+    <p>综合肉类企业集团 ｜ 业绩底部已过、回复加速中 ｜ 更新日: 2026-04-13</p>
+  </div>
+  <div class="header-right">
+    <span class="badge">東証プライム ／ 食料品</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPI ROW -->
+  <div class="grid-kpi">
+    <div class="kpi red">
+      <div class="kpi-label">FY2025 营业利益</div>
+      <div class="kpi-val red">51億</div>
+      <div class="kpi-sub">前期比 ▲59%　周期性谷底<br>原材料涨价＋美国成本压力</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">FY2026 Q3累计 营业利益</div>
+      <div class="kpi-val green">68億</div>
+      <div class="kpi-sub">前年同期比 +106%<br>已超越前期全年实绩</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">FY2026 通期预想（修正后）</div>
+      <div class="kpi-val green">88億</div>
+      <div class="kpi-sub">前期比 +71%　已上调预测<br>EPS: 252円（前期84円）</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">股息预期（DOE 3%方针）</div>
+      <div class="kpi-val blue">104円</div>
+      <div class="kpi-sub">前期89円→增配<br>稳定股东回报方针</div>
+    </div>
+    <div class="kpi teal">
+      <div class="kpi-label">自己资本比率（Q3）</div>
+      <div class="kpi-val teal">49.0%</div>
+      <div class="kpi-sub">前期末 52.8%→下降<br>大型资本支出（在建工程311億）</div>
+    </div>
+    <div class="kpi yellow">
+      <div class="kpi-label">下次财报（本决算预定）</div>
+      <div class="kpi-val yellow">4月</div>
+      <div class="kpi-sub">FY2026通期实绩公开<br>FY2027 初期指引关注</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: 变化轨迹 -->
+  <div class="section-title">变化轨迹 — 业绩推移 ＆ 构造转换路线图</div>
+
+  <div class="grid-2">
+
+    <!-- TIMELINE -->
+    <div class="card">
+      <div class="card-title">
+        <span class="dot" style="background:var(--accent)"></span>
+        关键事件时间轴 ｜ 左列 = 业绩阶段
+      </div>
+      <div class="timeline">
+
+        <div class="tl-node">
+          <div class="phase-tag ph-peak">顶峰<br>期</div>
+          <div class="dot-wrap"><div class="tl-dot d-blue"></div></div>
+          <div class="tl-card c-blue">
+            <div class="tl-date">FY2024　2024年2月期实绩</div>
+            <div class="tl-title">营业利益 127億円（历史级别）</div>
+            <div class="tl-body">销售额 4,250億円（+6.5%）。国内价格调整＋海外牛肉业绩良好叠加，利润率3.0%。但翌期美国活牛价格持续上涨。</div>
+          </div>
+        </div>
+
+        <div class="tl-node">
+          <div class="phase-tag ph-trough">谷底<br>期</div>
+          <div class="dot-wrap"><div class="tl-dot d-red"></div></div>
+          <div class="tl-card c-red">
+            <div class="tl-date">FY2025　2025年2月期实绩</div>
+            <div class="tl-title">营业利益 51億円（前期比 ▲59%）　净利益 27億円（▲71%）</div>
+            <div class="tl-body">
+              主因①：美国 Aurora Beef — 活牛价格高企＋新西兰对中国销售低迷。<br>
+              主因②：国内 — 消费者节约意识持续，成本转嫁困难。<br>
+              主因③：特别损失 — 坏账准备计提71億、子公司转让损失21億。<br>
+              <span class="pill pill-red">业绩冲击</span><span class="pill pill-yellow">海外投资先行</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-node">
+          <div class="phase-tag ph-blank">—</div>
+          <div class="dot-wrap"><div class="tl-dot d-yellow d-sm"></div></div>
+          <div class="tl-card c-yellow" style="padding:10px 16px;">
+            <div class="tl-date">2025年1月　DOE政策发布</div>
+            <div class="tl-title">宣布以连结股东权益股息率（DOE）3%为目标的稳定分红方针</div>
+            <div class="tl-body">FY2026预期股息 104円（前期89円）。明确以资本为基准、不依赖净利润持续增配的方针。<span class="pill pill-blue">股东回报强化</span></div>
+          </div>
+        </div>
+
+        <div class="tl-node">
+          <div class="phase-tag ph-turn">转换<br>节点</div>
+          <div class="dot-wrap"><div class="tl-dot d-yellow"></div></div>
+          <div class="tl-card c-yellow">
+            <div class="tl-date">2025年4月　重要里程碑</div>
+            <div class="tl-title">美国 Aurora Beef 新工厂启动运营　供给能力大幅增强</div>
+            <div class="tl-body">
+              以提升优质牛肉采购能力为目的的核心投资进入运营阶段。建设期间先行费用减少，规模效益开始对收益产生贡献。<br>
+              <span class="pill pill-green">最大正触媒</span><span class="pill pill-blue">海外收益改善预期</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-node">
+          <div class="phase-tag ph-blank">—</div>
+          <div class="dot-wrap"><div class="tl-dot d-yellow d-sm"></div></div>
+          <div class="tl-card c-yellow" style="padding:10px 16px;">
+            <div class="tl-date">FY2025期间　NZ子公司化</div>
+            <div class="tl-title">将 Ashburton Meat Processors Limited 纳入连结子公司（产生负商誉）</div>
+            <div class="tl-body">扩展食肉供应链的海外网络，强化新西兰产品的处理能力。<span class="pill pill-blue">垂直整合扩大</span></div>
+          </div>
+        </div>
+
+        <div class="tl-node">
+          <div class="phase-tag ph-now">回复<br>加速</div>
+          <div class="dot-wrap"><div class="tl-dot d-teal"></div></div>
+          <div class="tl-card c-teal">
+            <div class="tl-date">FY2026 Q3　2026年1月14日发布 <span class="now-pill">NOW</span></div>
+            <div class="tl-title">Q3累计营业利益 68億（+106%）　通期预想从 75億→88億 上调修正</div>
+            <div class="tl-body">
+              制造・批发业务分部利润+132%领涨。特别收益（固定资产出售13億＋持有证券出售26億）亦有贡献。净利润Q3累计68億超前期全年27億的2.5倍。<br>
+              <span class="pill pill-green">大幅回复确认</span><span class="pill pill-green">上调预测</span><span class="pill pill-yellow">零售・餐饮持续低迷</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-node">
+          <div class="phase-tag ph-future">下期<br>成长</div>
+          <div class="dot-wrap"><div class="tl-dot d-green"></div></div>
+          <div class="tl-card c-green dashed">
+            <div class="tl-date">FY2027及以后　中期展望 <span class="future-pill">OUTLOOK</span></div>
+            <div class="tl-title">垂直整合战略深化 ＋ 海外收益贡献全面化</div>
+            <div class="tl-body">
+              Aurora Beef 运营效果全年反映，与新西兰基地联动加强，国产品牌牛出口扩大。若 DOE 3% 配当持续，存在增配压力。<br>
+              <span class="pill pill-yellow">最大担忧</span> 广岛新基地・海外投资导致的资本支出高原状态（有形固定资产839億、在建工程311億）持续期间，营业CF相比投资负担较重。
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PERFORMANCE TABLE + SEGMENT -->
+    <div style="display:flex; flex-direction:column; gap:18px;">
+
+      <div class="card">
+        <div class="card-title">
+          <span class="dot" style="background:var(--green)"></span>
+          连结业绩推移（实绩 ＋ 预测）
+        </div>
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>期</th>
+              <th class="num">销售额</th>
+              <th class="num">营业利益</th>
+              <th class="num">利润率</th>
+              <th class="num">EPS</th>
+              <th class="num">股息</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="pill pill-blue">FY2023<br>2月期</span></td>
+              <td class="num">3,988億</td>
+              <td class="num">146億</td>
+              <td class="num chg-up">3.7%</td>
+              <td class="num">—</td>
+              <td class="num">84円</td>
+            </tr>
+            <tr>
+              <td><span class="pill pill-blue">FY2024<br>2月期</span></td>
+              <td class="num">4,250億</td>
+              <td class="num">127億</td>
+              <td class="num chg-up">3.0%</td>
+              <td class="num">287円</td>
+              <td class="num">84円</td>
+            </tr>
+            <tr class="row-trough">
+              <td><span class="pill pill-red">FY2025<br>2月期</span><br><span style="font-size:10px;color:var(--red)">▼谷底</span></td>
+              <td class="num">4,445億</td>
+              <td class="num chg-down">51億</td>
+              <td class="num chg-down">1.2%</td>
+              <td class="num chg-down">84円</td>
+              <td class="num">89円</td>
+            </tr>
+            <tr class="row-now">
+              <td><span class="pill pill-teal">FY2026<br>Q3累計</span><br><span style="font-size:10px;color:var(--teal)">▲回复中</span></td>
+              <td class="num">3,467億</td>
+              <td class="num chg-up">68億</td>
+              <td class="num chg-up">1.96%</td>
+              <td class="num chg-up">216円</td>
+              <td class="num">52円<br><span style="font-size:10px;color:var(--muted)">(中间)</span></td>
+            </tr>
+            <tr class="row-future">
+              <td><span class="pill pill-green">FY2026<br>通期预想</span><br><span style="font-size:10px;color:var(--green)">★修正後</span></td>
+              <td class="num">4,680億</td>
+              <td class="num chg-up">88億</td>
+              <td class="num chg-up">1.88%</td>
+              <td class="num chg-up">253円</td>
+              <td class="num chg-up">104円</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="dot" style="background:var(--accent2)"></span>
+          FY2026 Q3 分部门利润 ｜ 合计 68億
+        </div>
+        <div style="margin-bottom:12px;">
+          <div class="seg-row">
+            <div class="seg-label">制造・批发</div>
+            <div class="seg-bar-bg">
+              <div class="seg-bar" style="width:85%; background:var(--accent);"></div>
+            </div>
+            <div class="seg-val" style="color:var(--accent)">+132%</div>
+          </div>
+          <div class="seg-row">
+            <div class="seg-label" style="font-size:10.5px;">（批发业务分部利润：65億，占销售额92%）</div>
+            <div class="seg-bar-bg"></div>
+            <div class="seg-val"></div>
+          </div>
+          <div class="seg-row" style="margin-top:4px;">
+            <div class="seg-label">零售</div>
+            <div class="seg-bar-bg">
+              <div class="seg-bar" style="width:30%; background:var(--yellow);"></div>
+            </div>
+            <div class="seg-val" style="color:var(--red)">▲20%</div>
+          </div>
+          <div class="seg-row">
+            <div class="seg-label">餐饮</div>
+            <div class="seg-bar-bg">
+              <div class="seg-bar" style="width:15%; background:var(--red);"></div>
+            </div>
+            <div class="seg-val" style="color:var(--red)">▲5%</div>
+          </div>
+          <div class="seg-row">
+            <div class="seg-label">其他</div>
+            <div class="seg-bar-bg">
+              <div class="seg-bar" style="width:8%; background:var(--green);"></div>
+            </div>
+            <div class="seg-val" style="color:var(--green)">+36%</div>
+          </div>
+        </div>
+        <div style="font-size:11.5px; color:var(--muted); line-height:1.6; padding:10px 0; border-top:1px solid var(--border);">
+          <strong style="color:var(--text)">结构特征：</strong>制造・批发业务承担全体利润的<strong style="color:var(--accent)">95%以上</strong>，高度集中型。零售・餐饮受节约意识和原材料价格上涨影响，依然疲软。
+          这些业务仅占销售额的约7%，对业绩影响轻微，但仍作为收益改善空间留存。
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION 2: CATALYST ANALYSIS -->
+  <div class="section-title">催化剂分析 — 什么会让市场重新定价？</div>
+
+  <div class="grid-full">
+    <div class="card">
+      <div class="card-title">
+        <span class="dot" style="background:var(--text)"></span>
+        核心结论（先读这里）
+      </div>
+      <ul class="conclusion-list">
+        <li>
+          <span class="c-num pos">①</span>
+          <span><strong>故事核心：「周期性底部通过 ＋ 海外投资回报开始」</strong>。FY2025是先行投资费用集中的谷底期，FY2026 Q3累计+106%的回复是其验证。不盈利因素（NZ销售低迷、活牛价格高企）进入缓和阶段，属于景气因素敞口型回复，而非结构性问题。</span>
+        </li>
+        <li>
+          <span class="c-num pos">②</span>
+          <span><strong>最大正触媒：Aurora Beef 新工厂的全年贡献（FY2027）</strong>。2025年4月启动运营后，FY2026仅有半年期贡献。FY2027将全年满产，利润影响显现，届时将确认<strong>美国业务是否转变为收益驱动力</strong>。</span>
+        </li>
+        <li>
+          <span class="c-num warn">③</span>
+          <span><strong>下一关注重点：FY2026年度决算（4月）＋ FY2027初期指引</strong>。Q3时点通期预测88億基本达成节奏，但问题在于<strong>FY2027来期的方向感</strong>。能否体现 Aurora 贡献、国内价格传导的持续性，是焦点所在。若指引保守，股价调整风险较大。</span>
+        </li>
+        <li>
+          <span class="c-num neg">④</span>
+          <span><strong>最大风险：日元升值 ＋ 美国活牛价格再度飙升</strong>。美国业务占销售额约12%（540億円），日元升值直接冲击汇率换算损失（Q3时点汇率换算调整账户已达▲278億）。另外，美国农业政策变化（关税）有可能影响活牛供需。</span>
+        </li>
+        <li>
+          <span class="c-num info">⑤</span>
+          <span><strong>DOE 3%配当政策是吸引中长期资金的锚</strong>。即使EPS为84円也支付89円股息（前期）、EPS预测252円时支付104円股息（本期）的政策，比依赖净利润的分红方式更具安心感。当前股东权益1,218億×3%≒37億（≈120円/股规模）为参考值。</span>
+        </li>
+        <li>
+          <span class="c-num teal">⑥</span>
+          <span><strong>资本支出高原状态将持续一段时间</strong>。在建工程311億（前期283億）、有形固定资产839億，投资持续。营业CF（FY2025实绩73億）相对投资CF流出150億的结构短期内不会改变，<strong>自由现金流持续为负</strong>。财务健康性（自有资本比率49%）在可容忍范围内，但需注意。</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="matrix-grid" style="margin-bottom:18px;">
+    <div class="matrix-card pos-card">
+      <h4 class="pos-h">正触媒（上行风险）</h4>
+      <div class="matrix-item">
+        <div class="rank">①</div>
+        <div class="content">
+          <div class="mtitle">Aurora Beef 新工厂全产能运营贡献（FY2027全年）</div>
+          <div class="mnote">2025年4月启动→FY2026仅半期分。FY2027全年贡献确认后，美国业务将成为扭亏增盈的核心驱动力。最大业绩改善催化剂。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">②</div>
+        <div class="content">
+          <div class="mtitle">国内消费者信心回复 ＋ 价格调整效果持续</div>
+          <div class="mnote">若薪资上涨带动肉类消费单价回升，批发・零售双方利润率均可改善。取决于中期节约意识缓和的时间节点。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">③</div>
+        <div class="content">
+          <div class="mtitle">国产和牛・品牌牛销售量扩大 ＋ 出口增加</div>
+          <div class="mnote">入境旅游需求＋亚洲出口扩大有助于提升高单价品占比。世博相关需求（2025大阪）短期内亦有推升效应。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">④</div>
+        <div class="content">
+          <div class="mtitle">DOE股息增配信号 ＋ 股东权益扩大联动</div>
+          <div class="mnote">自有资本1,218億×DOE3%≒37億（120円/股）水准高于当前104円预测方向。增益→内部留存→资本增加→股息增加的良性循环。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">⑤</div>
+        <div class="content">
+          <div class="mtitle">零售・餐饮业务的结构改善（不盈利门店关闭效果）</div>
+          <div class="mnote">持续推进的不盈利门店关闭完成后，亏损拖累消除，利润率得以提升。目前对整体影响轻微，若出现改善则为估值重估素材。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="matrix-card neg-card">
+      <h4 class="neg-h">负触媒（下行风险）</h4>
+      <div class="matrix-item">
+        <div class="rank">①</div>
+        <div class="content">
+          <div class="mtitle">日元升值 → 美国收益的日元换算缩水</div>
+          <div class="mnote">美国销售额540億（占整体12%）。汇率换算调整账户Q3时点扩大至▲278億。日元升值加速（140円→130円以下）则直接冲击全年业绩。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">②</div>
+        <div class="content">
+          <div class="mtitle">美国活牛价格再度飙升 / 关税风险</div>
+          <div class="mnote">FY2025业绩低迷的主要原因。目前以一定稳定化为前提，但美国农业政策（关税・环境法规）的变动有再次扰乱活牛供需的风险。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">③</div>
+        <div class="content">
+          <div class="mtitle">国内节约意识长期化 → 价格传导的极限</div>
+          <div class="mnote">若向低价格段迁移持续，零售・餐饮的成本传导困难将持续。尤其餐饮面临原材料费＋能源费＋人工费的三重压力。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">④</div>
+        <div class="content">
+          <div class="mtitle">高水平资本支出持续 → 自由现金流为负・有息负债增加</div>
+          <div class="mnote">广岛新基地・海外工厂运营后设备整备持续。FY2025投资CF▲150億 vs 营业CF+73億。有息负债（短期借款145億＋长期借款420億）的增加趋势需注意。</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="rank">⑤</div>
+        <div class="content">
+          <div class="mtitle">FY2026年度决算中FY2027指引保守 → 「业绩见顶感」判断</div>
+          <div class="mnote">Q3好业绩抬高了门槛。若 Aurora 工厂运营效果低于预期，或一次性特别收益剥落，则通期EPS见顶担忧将引发调整。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: KEY DATES -->
+  <div class="section-title">重要日程 ＆ 催化剂日程安排</div>
+
+  <div class="card">
+    <div class="card-title">
+      <span class="dot" style="background:var(--yellow)"></span>
+      2026年 催化剂日历
+    </div>
+    <table class="date-table">
+      <thead>
+        <tr>
+          <th style="width:140px;">日程</th>
+          <th>事件</th>
+          <th style="width:60px; text-align:center;">类型</th>
+          <th style="width:280px;">关注点 ＆ 判断基准</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="date-col">2026年4月（今月）</td>
+          <td class="event-col">FY2026 年度决算 ＋ FY2027 初期业绩预测</td>
+          <td style="text-align:center;"><span class="pill pill-yellow">★最重要</span></td>
+          <td class="note-col">FY2027指引积极则股价重新定价。若保守（OP 80億以下）则调整风险较高。Aurora 新工厂全产能运营影响如何在来期反映，是焦点所在。</td>
+        </tr>
+        <tr>
+          <td class="date-col">2026年5月</td>
+          <td class="event-col">定期股东大会（DOE3%持续确认）</td>
+          <td style="text-align:center;"><span class="pill pill-blue">股息</span></td>
+          <td class="note-col">若提及 DOE 政策持续・上调，则为中长期投资者的买入素材。期末股息52円＋中间52円＝104円支付确定。</td>
+        </tr>
+        <tr>
+          <td class="date-col">2026年7月前后</td>
+          <td class="event-col">FY2027 第1Q财报</td>
+          <td style="text-align:center;"><span class="pill pill-teal">验证</span></td>
+          <td class="event-col"><span class="note-col">Aurora 新工厂全产能运营的首次业绩体现。制造・批发业务分部利润是否超过上年同期，是首个定量检验节点。</span></td>
+        </tr>
+        <tr>
+          <td class="date-col">全年 监测</td>
+          <td class="event-col">美国活牛价格指数 ＋ 美元日元汇率</td>
+          <td style="text-align:center;"><span class="pill pill-red">风险</span></td>
+          <td class="note-col">FY2025业绩低迷的根本原因。建议每周监测。尤其美国农业关税政策（特朗普政府）动向与活牛价格直接挂钩。</td>
+        </tr>
+        <tr>
+          <td class="date-col">全年 监测</td>
+          <td class="event-col">国内肉类消费 CPI ＋ 餐饮销售统计</td>
+          <td style="text-align:center;"><span class="pill pill-orange">关注</span></td>
+          <td class="note-col">确认零售・餐饮业务（占整体7%）改善的先行指标。若节约意识缓和，零售业务利润将得到提升。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="verdict">
+      <div class="verdict-label">综合判断</div>
+      <div class="verdict-text">
+        エスフーズ 是<strong>「先行投资周期结果」型投资机会</strong>，与3103式的重建/外科手术型有本质区别。FY2025的触底已确认，FY2026 Q3 +106%的回复速度超过预期。<br><br>
+        最大上行空间是<strong>Aurora Beef 新工厂在FY2027全年贡献的情景</strong>——若实现，「先行费用消失＋收益化」的双重效果将推动利润率向3%台回升。<br><br>
+        追踪重点：① <strong>FY2026年度决算中FY2027指引水准</strong>（保守还是积极）　② <strong>美国活牛价格与日元美元汇率方向</strong>　③ <strong>在建工程311億的落地（资本支出见顶时间节点）</strong>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  数据来源: 决算短信（2025年2月期・2026年2月期3Q）、Claude分析 ｜ 更新日: 2026-04-13 ｜ 本资料仅供参考，不构成投资建议
+</div>
+
+</body>
+</html>
