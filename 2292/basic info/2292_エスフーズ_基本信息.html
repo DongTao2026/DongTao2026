@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2292 エスフーズ 基本信息看板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:   #1a56db;
+  --amber:  #f59e0b;
+  --green:  #10b981;
+  --red:    #ef4444;
+  --bg:     #f0f4f8;
+  --card:   #ffffff;
+  --border: #e2e8f0;
+  --text:   #1e293b;
+  --muted:  #64748b;
+  --nav-h:  60px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--nav-h);
+  background: var(--blue);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+#navbar .brand { color: #fff; font-weight: 700; font-size: 16px; white-space: nowrap; }
+#navbar .nav-links { display: flex; gap: 4px; flex-wrap: wrap; overflow: hidden; }
+#navbar .nav-links a {
+  color: rgba(255,255,255,.85);
+  text-decoration: none; font-size: 12px;
+  padding: 4px 8px; border-radius: 4px;
+  white-space: nowrap;
+  transition: background .15s;
+}
+#navbar .nav-links a:hover { background: rgba(255,255,255,.2); }
+
+#kpi-strip {
+  margin-top: var(--nav-h);
+  background: #1e3a5f;
+  padding: 12px 20px;
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+}
+.kpi-item { display: flex; flex-direction: column; align-items: center; color: #fff; min-width: 90px; }
+.kpi-label { font-size: 11px; color: rgba(255,255,255,.7); }
+.kpi-value { font-size: 20px; font-weight: 700; }
+.kpi-sub   { font-size: 11px; color: rgba(255,255,255,.6); }
+.kpi-divider { width: 1px; height: 40px; background: rgba(255,255,255,.2); }
+
+.main { max-width: 1400px; margin: 0 auto; padding: 20px; }
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 15px; font-weight: 700; color: var(--blue);
+  border-left: 4px solid var(--blue);
+  padding-left: 10px; margin-bottom: 16px;
+}
+.section-label {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+  margin-bottom: 4px;
+}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* Info table */
+.info-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.info-table th {
+  background: #f1f5f9; color: var(--muted);
+  font-weight: 600; font-size: 12px;
+  padding: 8px 12px; text-align: left;
+  border: 1px solid var(--border);
+  width: 160px;
+}
+.info-table td {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  line-height: 1.6;
+}
+.info-table tr:hover td { background: #f8faff; }
+
+/* Data table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th {
+  background: #1e3a5f; color: #fff;
+  padding: 8px 10px; text-align: center;
+  font-size: 12px; font-weight: 600;
+  border: 1px solid #2d4d70;
+}
+.data-table td {
+  padding: 7px 10px; text-align: right;
+  border: 1px solid var(--border);
+}
+.data-table td:first-child { text-align: left; }
+.data-table tr:nth-child(even) td { background: #f8faff; }
+.data-table tr:hover td { background: #eff6ff; }
+.data-table .total-row td { background: #eff6ff; font-weight: 700; border-top: 2px solid var(--blue); }
+
+/* Tag badges */
+.badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.badge-blue  { background: #dbeafe; color: #1e40af; }
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-red   { background: #fee2e2; color: #991b1b; }
+.badge-gray  { background: #f1f5f9; color: #475569; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 20px; }
+.timeline::before {
+  content: ''; position: absolute; left: 7px; top: 0; bottom: 0;
+  width: 2px; background: #e2e8f0;
+}
+.tl-item { position: relative; padding: 4px 0 10px 16px; }
+.tl-item::before {
+  content: ''; position: absolute; left: -5px; top: 8px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--blue); border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--blue);
+}
+.tl-year { font-size: 11px; font-weight: 700; color: var(--blue); margin-bottom: 2px; }
+.tl-text { font-size: 12.5px; color: var(--text); line-height: 1.5; }
+
+/* Risk items */
+.risk-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px; border-radius: 8px;
+  border: 1px solid var(--border); margin-bottom: 10px;
+  background: #fafafa;
+}
+.risk-num {
+  min-width: 28px; height: 28px; border-radius: 50%;
+  background: #fee2e2; color: #991b1b;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+}
+.risk-content .risk-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.risk-content .risk-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* Shareholder bar */
+.sh-bar-wrap { margin-bottom: 8px; }
+.sh-bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+.sh-bar-track { background: #e2e8f0; border-radius: 4px; height: 10px; }
+.sh-bar-fill  { height: 10px; border-radius: 4px; background: var(--blue); }
+.sh-bar-fill.amber { background: var(--amber); }
+.sh-bar-fill.green { background: var(--green); }
+
+/* Person card */
+.person-card {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; margin-bottom: 10px;
+  background: #fafafa;
+}
+.person-role { font-size: 11px; color: var(--blue); font-weight: 700; }
+.person-name { font-size: 15px; font-weight: 700; margin: 2px 0; }
+.person-dob  { font-size: 11px; color: var(--muted); }
+.person-bio  { font-size: 12px; color: var(--text); margin-top: 6px; line-height: 1.6; }
+.person-shares { margin-top: 4px; }
+
+/* Security table */
+.sec-change-up   { color: var(--green); font-weight: 700; }
+.sec-change-down { color: var(--red); font-weight: 700; }
+.sec-change-none { color: var(--muted); }
+
+/* Segment bar */
+.seg-bar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; margin: 10px 0 4px; }
+.seg-part { display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #fff; font-weight: 600; transition: flex .3s; }
+.seg-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.seg-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; }
+.seg-legend-item { display: flex; align-items: center; font-size: 11.5px; }
+
+/* Note box */
+.note-box {
+  background: #f0f9ff; border: 1px solid #bae6fd;
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 12.5px; color: #0c4a6e; line-height: 1.7;
+  margin-top: 10px;
+}
+.note-box.amber {
+  background: #fffbeb; border-color: #fcd34d; color: #78350f;
+}
+.note-box.green {
+  background: #f0fdf4; border-color: #86efac; color: #14532d;
+}
+
+.insight {
+  margin-top: 12px;
+  padding: 9px 14px;
+  background: #f8faff;
+  border-left: 3px solid var(--blue);
+  border-radius: 0 6px 6px 0;
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.7;
+}
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+/* Change indicator arrows */
+.up   { color: var(--green); }
+.down { color: var(--red); }
+.flat { color: var(--muted); }
+
+.number { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="navbar">
+  <div class="brand">2292 エスフーズ｜基本信息看板</div>
+  <div class="nav-links">
+    <a href="#sec-overview">公司概要</a>
+    <a href="#sec-history">发展历程</a>
+    <a href="#sec-bizmodel">业务模式</a>
+    <a href="#sec-segment">业务板块</a>
+    <a href="#sec-geo">地区分布</a>
+    <a href="#sec-mgmt">管理层</a>
+    <a href="#sec-shareholders">股东</a>
+    <a href="#sec-securities">政策持股</a>
+    <a href="#sec-land">土地资产</a>
+    <a href="#sec-customers">主要客户</a>
+    <a href="#sec-risk">风险</a>
+    <a href="#sec-capital">资本变动</a>
+    <a href="#sec-yutai">股东回馈</a>
+  </div>
+</nav>
+
+<!-- ===== KPI STRIP ===== -->
+<div id="kpi-strip">
+  <div class="kpi-item">
+    <div class="kpi-label">股票代码</div>
+    <div class="kpi-value">2292</div>
+    <div class="kpi-sub">东证Prime</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">营业收入（FY2025）</div>
+    <div class="kpi-value">4,445亿日元</div>
+    <div class="kpi-sub">+4.6% YoY</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">营业利润（FY2025）</div>
+    <div class="kpi-value">51亿日元</div>
+    <div class="kpi-sub">-59.4% YoY</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">ROE（FY2025）</div>
+    <div class="kpi-value">2.2%</div>
+    <div class="kpi-sub">上期 7.9%</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">净资产</div>
+    <div class="kpi-value">1,299亿日元</div>
+    <div class="kpi-sub">自有资本比率 52.8%</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">年度分红</div>
+    <div class="kpi-value">89日元</div>
+    <div class="kpi-sub">分红支付率 42.2%</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">已发行股数</div>
+    <div class="kpi-value">3,227万股</div>
+    <div class="kpi-sub">注册资本 42.98亿日元</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">创始家族控股</div>
+    <div class="kpi-value">25.3%</div>
+    <div class="kpi-sub">村上真之助社长</div>
+  </div>
+  <div class="kpi-divider"></div>
+  <div class="kpi-item">
+    <div class="kpi-label">数据基准</div>
+    <div class="kpi-value">FY2025</div>
+    <div class="kpi-sub">2025年2月期</div>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- ① 公司概要 -->
+  <div class="card" id="sec-overview">
+    <div class="card-title">① 公司概要（基本信息）</div>
+    <div class="grid2">
+      <div>
+        <table class="info-table">
+          <tr><th>公司名称</th><td><strong>エスフーズ株式会社</strong>（S Foods Inc.）</td></tr>
+          <tr><th>股票代码</th><td>2292</td></tr>
+          <tr><th>上市市场</th><td><span class="badge badge-blue">东证Prime市场</span></td></tr>
+          <tr><th>行业</th><td>食品（肉类加工·流通）</td></tr>
+          <tr><th>总部地址</th><td>兵庫県西宮市鳴尾浜１丁目22番13</td></tr>
+          <tr><th>成立</th><td>1967年5月（以有限会社スタミナ食品创业）</td></tr>
+          <tr><th>上市历程</th><td>
+            1989年8月 场外挂牌 → 1994年7月 大证2部 → 1999年12月 东证2部<br>
+            2000年8月 东证·大证1部 → 2022年4月 东证Prime
+          </td></tr>
+          <tr><th>会计年度</th><td>2月末（3月1日〜翌2月末）</td></tr>
+          <tr><th>注册资本</th><td>42.98亿日元</td></tr>
+          <tr><th>已发行股数</th><td>32,267,721股（单元股：100股）</td></tr>
+          <tr><th>审计机构</th><td>有限責任 あずさ監査法人（连续19年）</td></tr>
+          <tr><th>EDINET代码</th><td>E00342</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">企业理念·愿景</div>
+        <div class="note-box" style="margin-top:6px;">
+          <strong>企业理念：</strong>「以充满魅力的、热爱美味与健康的活力食品，为世界作出贡献。」<br><br>
+          <strong>愿景：</strong>「杂碎肉/副产品肉世界第一，肉类日本第一」
+        </div>
+        <div class="section-label" style="margin-top:14px;">主要产品/服务</div>
+        <div class="tag-row" style="margin-top:8px;">
+          <span class="badge badge-blue">こてっちゃん（牛内脏肉）</span>
+          <span class="badge badge-blue">牛杂火锅</span>
+          <span class="badge badge-blue">神戸ビーフ</span>
+          <span class="badge badge-green">国产和牛</span>
+          <span class="badge badge-green">进口牛肉</span>
+          <span class="badge badge-green">进口猪肉</span>
+          <span class="badge badge-amber">杂碎肉/副产品肉</span>
+          <span class="badge badge-amber">加工食品</span>
+          <span class="badge badge-gray">冷藏仓储</span>
+        </div>
+        <div class="section-label" style="margin-top:14px;">集团构成</div>
+        <div class="note-box green" style="margin-top:6px;">
+          合并子公司 <strong>35家</strong>，权益法关联公司 1家，<br>
+          其他关联公司 1家（丸紅株式会社 ＝ 第2大股东兼主要供应商）
+        </div>
+        <div class="section-label" style="margin-top:14px;">FY2025 业绩亮点</div>
+        <table class="data-table" style="margin-top:6px;">
+          <thead><tr><th>指标</th><th>FY2023</th><th>FY2024</th><th>FY2025</th></tr></thead>
+          <tbody>
+            <tr><td>营业收入（亿日元）</td><td>3,992</td><td>4,250</td><td><strong>4,445</strong></td></tr>
+            <tr><td>营业利润（亿日元）</td><td>146</td><td>127</td><td><strong>51</strong></td></tr>
+            <tr><td>经常利润（亿日元）</td><td>158</td><td>144</td><td><strong>64</strong></td></tr>
+            <tr><td>净利润（亿日元）</td><td>106</td><td>91</td><td><strong>27</strong></td></tr>
+            <tr><td>ROE</td><td>10.1%</td><td>7.9%</td><td><strong>2.2%</strong></td></tr>
+            <tr><td>EPS（日元）</td><td>334.23</td><td>286.85</td><td><strong>84.29</strong></td></tr>
+            <tr><td>年度分红（日元）</td><td>89</td><td>89</td><td><strong>89</strong></td></tr>
+          </tbody>
+        </table>
+        <div class="insight">⚠️ FY2025因美国子公司AURORA新工厂启动成本、美国牛肉市况恶化及新西兰育肥业务低迷叠加，营业利润大幅下滑。营业收入仍保持增长。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 发展历程 -->
+  <div class="card" id="sec-history">
+    <div class="card-title">② 发展历程</div>
+    <div class="grid2">
+      <div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-year">1967年5月</div>
+            <div class="tl-text">创始人・森島征夫在兵庫県尼崎市成立<strong>有限会社スタミナ食品</strong>，开始内脏肉销售。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1970年1月</div>
+            <div class="tl-text">组织变更为スタミナ食品株式会社（注册资本300万日元）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1972年1月</div>
+            <div class="tl-text">成功从美国<strong>开发进口内脏肉（牛上みの）</strong>。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1978年3月</div>
+            <div class="tl-text">成立スタミナフードサプライ㈱（现・㈱味兆）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1982年7月</div>
+            <div class="tl-text">牛内脏肉产品「<strong>こてっちゃん</strong>」上市销售，成为长销商品。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1984年1月</div>
+            <div class="tl-text">在兵庫県西宮市鳴尾浜建设总部大楼及工厂并迁址（现址）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1989年4月</div>
+            <div class="tl-text">与丸紅等合资在美国内布拉斯加州成立FREMONT BEEF COMPANY。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1989年8月</div>
+            <div class="tl-text">在日本证券业协会<strong>场外挂牌上市</strong>。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1992年8月</div>
+            <div class="tl-text">「牛杂火锅」上市销售。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1994年7月</div>
+            <div class="tl-text">在大阪证券交易所市场第二部上市。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">1999年12月</div>
+            <div class="tl-text">在东京证券交易所市场第二部上市。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2000年8月</div>
+            <div class="tl-text">更名为<strong>エスフーズ株式会社</strong>，指定东证·大证市场第一部。</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-year">2004年9月</div>
+            <div class="tl-text">通过股份置换将㈱ムラチク完全子公司化（现任社长·村上真之助出身企业）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2005年3月</div>
+            <div class="tl-text">吸收合并㈱ムラチク。将FREMONT BEEF完全子公司化。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2008年10月</div>
+            <div class="tl-text">收购㈱ヒョウチク全部股份（扩大国内肉类业务）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2009年3月</div>
+            <div class="tl-text">收购九州相模ハム㈱（现・大阿蘇ハム㈱）全部股份。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2010年4月</div>
+            <div class="tl-text">收购㈱北海道中央牧場全部股份（进入上游牧场业务）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2012年1月</div>
+            <div class="tl-text"><strong>开始出口神戸ビーフ</strong>（进入海外高端牛肉市场）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2014年1月</div>
+            <div class="tl-text">收购グリコハム㈱（现・㈱フードリエ）全部股份（肉类加工品制造）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2015年12月</div>
+            <div class="tl-text">收购AURORA PACKING COMPANY,INC.（美国伊利诺伊州）全部股份（美国牛肉处理规模最大级）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2020年1月</div>
+            <div class="tl-text">在千葉県船橋市建设东京分公司并迁移（强化首都圈物流）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2021年〜</div>
+            <div class="tl-text">启动AURORA新工厂建设（产能扩大2.5倍，总额321.6亿日元，预计2025年竣工）。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2022年4月</div>
+            <div class="tl-text">迁移至东证<strong>Prime市场</strong>。</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">2023年〜</div>
+            <div class="tl-text">启动新西兰育肥业务（原计划面向中国销售→低迷，业务重组中）。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 业务模式 -->
+  <div class="card" id="sec-bizmodel">
+    <div class="card-title">③ 业务模式</div>
+    <div class="grid2">
+      <div>
+        <div class="section-label">垂直整合型肉类供应链</div>
+        <table class="info-table" style="margin-top:8px;">
+          <tr>
+            <th>上游（生产）</th>
+            <td>
+              <strong>牧场：</strong>㈱北海道中央牧場（国内和牛育成）<br>
+              <strong>美国工厂：</strong>AURORA PACKING（牛的屠宰·分切）、FREMONT BEEF（杂碎肉/副产品肉加工）<br>
+              <strong>新西兰：</strong>育肥业务（业务重组中）
+            </td>
+          </tr>
+          <tr>
+            <th>中游（制造・批发）</th>
+            <td>
+              <strong>主力业务板块（占营收的92.6%）</strong><br>
+              国内外肉类采购→加工→批发<br>
+              こてっちゃん・加工食品的制造销售<br>
+              西宮总部工厂・船橋工厂・姫路肉类中心等
+            </td>
+          </tr>
+          <tr>
+            <th>下游（零售）</th>
+            <td>
+              <strong>肉类等零售业务（占营收的5.4%）</strong><br>
+              面向普通消费者的肉类零售店铺运营
+            </td>
+          </tr>
+          <tr>
+            <th>下游（餐饮）</th>
+            <td>
+              <strong>肉类等餐饮业务（占营收的1.8%）</strong><br>
+              烤肉餐厅「焼肉の牛太」等运营（㈱オーエムツーネットワーク旗下）
+            </td>
+          </tr>
+          <tr>
+            <th>其他</th>
+            <td>冷藏仓储等（占营收的0.2%）</td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">竞争优势·护城河</div>
+        <div class="note-box" style="margin-top:8px;">
+          <strong>① 杂碎肉/副产品肉的专业性：</strong>自1967年起专注于牛内脏肉·副产品的采购、加工、销售。在竞争对手回避的领域建立了压倒性的国际网络。
+        </div>
+        <div class="note-box" style="margin-top:8px;">
+          <strong>② 垂直整合的稀有性：</strong>从牧场→屠宰→加工→产品制造→批发→零售→餐饮一贯整合。在肉类行业属极为罕见的模式。
+        </div>
+        <div class="note-box" style="margin-top:8px;">
+          <strong>③ 与丸紅的长期关系：</strong>丸紅株式会社为第2大股东（15.3%）兼主要供应商（年采购额432亿日元）。自美国工厂建设之初携手合作，强化采购网络。
+        </div>
+        <div class="note-box amber" style="margin-top:8px;">
+          <strong>⚠️ 行业景气位置：</strong>美国牛肉周期2024〜2025年正处于牛群收缩期（新冠后饲料及人工成本上升），市况低迷中。AURORA新工厂满负荷运营（预计FY2027.2期）是业绩复苏的关键。
+        </div>
+        <div class="section-label" style="margin-top:14px;">主要竞争对手</div>
+        <div class="tag-row" style="margin-top:8px;">
+          <span class="badge badge-gray">伊藤ハム米久ホールディングス㈱（上市）</span>
+          <span class="badge badge-gray">日本ハム（上市）</span>
+          <span class="badge badge-gray">プリマハム（上市）</span>
+          <span class="badge badge-gray">NH Foods美国业务</span>
+          <span class="badge badge-gray">丸大食品</span>
+        </div>
+        <div class="insight">エスフーズ以肉类专业商社·批发为主，与火腿·香肠制造大厂定位不同。在杂碎肉/副产品肉的进口·批发领域属No.1级别。无单一客户占营收10%以上（有价证券报告书未记载）。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 业务板块营收・利润 -->
+  <div class="card" id="sec-segment">
+    <div class="card-title">④ 近3年 业务板块营收・营业利润（单位：百万日元）</div>
+
+    <div class="section-label" style="margin-bottom:8px;">营业收入构成（条形图）</div>
+    <div style="display:flex; gap:20px; flex-wrap:wrap;">
+      <!-- FY2023 -->
+      <div style="flex:1; min-width:220px;">
+        <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:4px;">FY2023（2023年2月期）</div>
+        <div class="seg-bar">
+          <div class="seg-part" style="background:#1a56db; flex:92.0;" title="制造·批发">92.0%</div>
+          <div class="seg-part" style="background:#10b981; flex:5.8;" title="零售"></div>
+          <div class="seg-part" style="background:#f59e0b; flex:1.7;" title="餐饮"></div>
+          <div class="seg-part" style="background:#94a3b8; flex:0.5;" title="其他"></div>
+        </div>
+        <div class="seg-legend">
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#1a56db;"></span>制造·批发</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#10b981;"></span>零售</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#f59e0b;"></span>餐饮</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#94a3b8;"></span>其他</div>
+        </div>
+      </div>
+      <!-- FY2024 -->
+      <div style="flex:1; min-width:220px;">
+        <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:4px;">FY2024（2024年2月期）</div>
+        <div class="seg-bar">
+          <div class="seg-part" style="background:#1a56db; flex:92.4;" title="制造·批发">92.4%</div>
+          <div class="seg-part" style="background:#10b981; flex:5.7;" title="零售"></div>
+          <div class="seg-part" style="background:#f59e0b; flex:1.8;" title="餐饮"></div>
+          <div class="seg-part" style="background:#94a3b8; flex:0.2;" title="其他"></div>
+        </div>
+        <div class="seg-legend">
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#1a56db;"></span>制造·批发</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#10b981;"></span>零售</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#f59e0b;"></span>餐饮</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#94a3b8;"></span>其他</div>
+        </div>
+      </div>
+      <!-- FY2025 -->
+      <div style="flex:1; min-width:220px;">
+        <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:4px;">FY2025（2025年2月期）</div>
+        <div class="seg-bar">
+          <div class="seg-part" style="background:#1a56db; flex:92.6;" title="制造·批发">92.6%</div>
+          <div class="seg-part" style="background:#10b981; flex:5.4;" title="零售"></div>
+          <div class="seg-part" style="background:#f59e0b; flex:1.8;" title="餐饮"></div>
+          <div class="seg-part" style="background:#94a3b8; flex:0.2;" title="其他"></div>
+        </div>
+        <div class="seg-legend">
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#1a56db;"></span>制造·批发</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#10b981;"></span>零售</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#f59e0b;"></span>餐饮</div>
+          <div class="seg-legend-item"><span class="seg-dot" style="background:#94a3b8;"></span>其他</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th rowspan="2">业务板块</th>
+            <th colspan="2">FY2023（2023.2期）</th>
+            <th colspan="2">FY2024（2024.2期）</th>
+            <th colspan="2">FY2025（2025.2期）</th>
+          </tr>
+          <tr>
+            <th>营业收入</th><th>同比</th>
+            <th>营业收入</th><th>同比</th>
+            <th>营业收入</th><th>同比</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>肉类等制造・批发业务</td>
+            <td>367,154</td><td class="up">+10.7%</td>
+            <td>392,680</td><td class="up">+7.0%</td>
+            <td>411,598</td><td class="up">+4.8%</td>
+          </tr>
+          <tr>
+            <td>肉类等零售业务</td>
+            <td>23,114</td><td class="up">+3.1%</td>
+            <td>24,031</td><td class="up">+4.0%</td>
+            <td>24,049</td><td class="up">+0.1%</td>
+          </tr>
+          <tr>
+            <td>肉类等餐饮业务</td>
+            <td>6,685</td><td class="up">+9.8%</td>
+            <td>7,528</td><td class="up">+12.6%</td>
+            <td>8,126</td><td class="up">+7.9%</td>
+          </tr>
+          <tr>
+            <td>其他</td>
+            <td>2,255</td><td>—</td>
+            <td>770</td><td>—</td>
+            <td>771</td><td class="flat">+0.1%</td>
+          </tr>
+          <tr class="total-row">
+            <td>合计（合并营收）</td>
+            <td>399,208</td><td class="up">+11.2%</td>
+            <td>425,011</td><td class="up">+6.5%</td>
+            <td>444,546</td><td class="up">+4.6%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="section-label" style="margin-bottom:8px;">业务板块营业利润（FY2025仅详细确认）</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>业务板块</th>
+            <th>FY2023 营业利润</th>
+            <th>FY2024 营业利润</th>
+            <th>FY2025 营业利润</th>
+            <th>FY2025 利润率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>肉类等制造・批发业务</td><td>—</td><td>—</td><td>4,353</td><td>1.1%</td></tr>
+          <tr><td>肉类等零售业务</td><td>—</td><td>—</td><td>1,314</td><td>5.5%</td></tr>
+          <tr><td>肉类等餐饮业务</td><td>—</td><td>—</td><td>486</td><td>6.0%</td></tr>
+          <tr><td>其他</td><td>—</td><td>—</td><td>123</td><td>16.0%</td></tr>
+          <tr class="total-row"><td>合并营业利润（调整后）</td><td>14,571</td><td>12,673</td><td>5,143</td><td>1.2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="insight">FY2025制造·批发利润率1.1%为历史最低水平。AURORA新工厂建设成本及美国牛肉市况低迷（活牛价格高涨）为主因。餐饮·零售利润率相对稳定。</div>
+  </div>
+
+  <!-- ⑤ 地区别营收 -->
+  <div class="card" id="sec-geo">
+    <div class="card-title">⑤ 近3年 地区别营收・有形固定资产（单位：百万日元）</div>
+    <div class="grid2">
+      <div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>地区</th>
+              <th>FY2023 营收</th>
+              <th>FY2024 营收</th>
+              <th>FY2025 营收</th>
+              <th>FY2025 比率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>日本</td><td>—</td><td>367,836</td><td>383,226</td><td>86.2%</td></tr>
+            <tr><td>美国</td><td>—</td><td>53,574</td><td>54,356</td><td>12.2%</td></tr>
+            <tr><td>其他</td><td>—</td><td>3,599</td><td>6,963</td><td>1.6%</td></tr>
+            <tr class="total-row"><td>合计</td><td>399,208</td><td>425,011</td><td>444,546</td><td>100%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">有形固定资产所在地（FY2025）</div>
+        <table class="data-table" style="margin-top:6px;">
+          <thead><tr><th>地区</th><th>金额（百万日元）</th><th>比率</th></tr></thead>
+          <tbody>
+            <tr><td>日本</td><td>47,719</td><td>59.2%</td></tr>
+            <tr><td>美国</td><td>31,822</td><td>39.5%</td></tr>
+            <tr><td>其他</td><td>1,007</td><td>1.3%</td></tr>
+            <tr class="total-row"><td>合计</td><td>80,549</td><td>100%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="insight">营收日本占86%·美国占12%。然而有形固定资产美国约占4成（含AURORA新工厂在建工程283.6亿日元）。美国业务资产比率高，受汇率风险·美国牛肉市况风险影响较大的结构。「其他」营收增长（3,599→6,963百万日元）表明新西兰·澳大利亚等地海外采购·销售扩大。</div>
+  </div>
+
+  <!-- ⑥ 管理层 -->
+  <div class="card" id="sec-mgmt">
+    <div class="card-title">⑥ 主要管理层（役员信息）</div>
+    <div class="note-box amber" style="margin-bottom:14px;">
+      <strong>家族控股企业：</strong>代表董事社长・村上真之助个人持有800万股（25.28%），为第一大股东。
+      其为创始人・森島征夫的女婿系（㈱ムラチク创业），与资产管理公司「有限会社ファイブエム」（3.44%）合算，实质持股超28.7%的控股股东。家族经营型家族控股企业。
+    </div>
+
+    <div class="grid3">
+      <div class="person-card">
+        <div class="person-role">代表董事社长</div>
+        <div class="person-name">村上 真之助</div>
+        <div class="person-dob">1957年3月2日生（68岁）</div>
+        <div class="person-bio">
+          1975年 村上畜産入职 →<br>
+          1981年 成立㈱エムアンドエム食品 →<br>
+          1982年 成立㈱ムラチク（代表取締役）→<br>
+          2004年 入职本公司代表取締役副社长 →<br>
+          2006年 代表取締役社长营业本部长 →<br>
+          2010年〜 <strong>代表取締役社长（现任）</strong>
+        </div>
+        <div class="person-shares" style="margin-top:8px;">
+          <span class="badge badge-red">持股数: 8,000千股（25.28%）</span>
+        </div>
+        <div class="insight" style="margin-top:8px;">创始家族系家族控股经营者。实业出身，深耕肉类行业。</div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">专务董事（姫路分公司长）</div>
+        <div class="person-name">平井 博勝</div>
+        <div class="person-dob">1961年10月25日生</div>
+        <div class="person-bio">
+          1982年 入职㈱ムラチク →<br>
+          2024年 入职本公司专务董事姫路分公司长（现任）
+        </div>
+        <div class="person-shares"><span class="badge badge-gray">持股数: 12千股</span></div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">常务董事 营业本部长</div>
+        <div class="person-name">岩渕 弘康</div>
+        <div class="person-dob">1977年3月11日生</div>
+        <div class="person-bio">
+          2001年 入职㈱ムラチク →<br>
+          2025年 常务董事营业本部长（现任）
+        </div>
+        <div class="person-shares"><span class="badge badge-gray">持股数: 2千股</span></div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">常务董事 ㈱PFC代表取締役社长</div>
+        <div class="person-name">関口 孝行</div>
+        <div class="person-dob">1973年8月28日生</div>
+        <div class="person-bio">
+          2002年 入职㈱ムラチク →<br>
+          2015年 ㈱PFC代表取締役社长 →<br>
+          2025年 入职本公司常务董事（现任）
+        </div>
+        <div class="person-shares"><span class="badge badge-gray">持股数: 20千股</span></div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">取締役（董事） 管理本部长</div>
+        <div class="person-name">鵜木 健治</div>
+        <div class="person-dob">1964年2月23日生</div>
+        <div class="person-bio">
+          1987年 入职<strong>丸紅株式会社</strong> →<br>
+          2022年 入职本公司 →<br>
+          2023年 取締役（董事）管理本部长（现任）
+        </div>
+        <div class="person-shares"><span class="badge badge-amber">丸紅出身（持股1千股）</span></div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">取締役（董事） 进口肉类事业部长</div>
+        <div class="person-name">巻本 隆大</div>
+        <div class="person-dob">1971年3月16日生</div>
+        <div class="person-bio">
+          1993年 入职本公司 →<br>
+          2024年 取締役（董事）进口肉类事业部长（现任）
+        </div>
+        <div class="person-shares"><span class="badge badge-gray">持股数: 2千股</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="section-label">社外董事·公司治理</div>
+      <table class="data-table" style="margin-top:8px;">
+        <thead><tr><th>职务</th><th>姓名</th><th>专业</th><th>就任年</th></tr></thead>
+        <tbody>
+          <tr><td>社外董事（独立董事）</td><td>松野 英</td><td>律师（松野法律事務所）</td><td>2016年</td></tr>
+          <tr><td>社外董事（独立董事）</td><td>鴨田 視寿子</td><td>律师（RITA総合法律事務所代表）</td><td>2019年</td></tr>
+          <tr><td>社外董事（独立董事）</td><td>佐藤 栄起</td><td>注册会计师</td><td>2021年</td></tr>
+          <tr><td>社外董事（独立董事）</td><td>白水 雅子</td><td>大学讲师（口腔科学·食育）</td><td>2022年</td></tr>
+          <tr><td>常勤监察役</td><td>安岡 信幸</td><td>丸紅株式会社出身</td><td>2021年</td></tr>
+          <tr><td>社外监察役（独立监察役）</td><td>浦川 龍治</td><td>金融机构出身</td><td>2021年</td></tr>
+          <tr><td>社外监察役（独立监察役）</td><td>大塚 千代</td><td>律师（大塚法律事務所所长）</td><td>2013年</td></tr>
+        </tbody>
+      </table>
+      <div class="note-box" style="margin-top:10px;">
+        女性董事比率: <strong>21.4%</strong>（男性11名・女性3名）｜社外董事4名・社外监察役2名<br>
+        设置监察役会的公司。设置提名·薪酬委员会。董事报酬：7名取締役（董事）合计140百万日元（含奖金）
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ 主要股东 -->
+  <div class="card" id="sec-shareholders">
+    <div class="card-title">⑦ 近3年 前10大股东变化</div>
+    <div class="grid2">
+      <div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>股东名称</th>
+              <th>FY2023<br>持股比率</th>
+              <th>FY2024<br>持股比率</th>
+              <th>FY2025<br>持股比率</th>
+              <th>变化</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>村上 真之助（社长）</strong></td>
+              <td>25.29%</td><td>25.28%</td><td>25.28%</td>
+              <td class="flat">→</td>
+            </tr>
+            <tr>
+              <td>丸紅株式会社</td>
+              <td>15.31%</td><td>15.30%</td><td>15.30%</td>
+              <td class="flat">→</td>
+            </tr>
+            <tr>
+              <td>日本マスタートラスト信託銀行</td>
+              <td>6.79%</td><td>6.86%</td><td>7.34%</td>
+              <td class="up">↑</td>
+            </tr>
+            <tr>
+              <td>NORTHERN TRUST CO.(AVFC) RE FIDELITY FUNDS</td>
+              <td>3.93%</td><td>2.02%</td><td>3.59%</td>
+              <td class="up">↑↓</td>
+            </tr>
+            <tr>
+              <td>有限会社ファイブエム</td>
+              <td>3.44%</td><td>3.44%</td><td>3.44%</td>
+              <td class="flat">→</td>
+            </tr>
+            <tr>
+              <td>BBH FOR FIDELITY LOW-PRICED STOCK FUND</td>
+              <td>2.54%</td><td>2.51%</td><td>2.43%</td>
+              <td class="down">↓</td>
+            </tr>
+            <tr>
+              <td>JP MORGAN CHASE BANK 385632</td>
+              <td>2.56%</td><td>2.69%</td><td>2.19%</td>
+              <td class="down">↓</td>
+            </tr>
+            <tr>
+              <td>野村信託銀行㈱（投信账户）</td>
+              <td>—</td><td>2.01%</td><td>2.10%</td>
+              <td class="up">↑</td>
+            </tr>
+            <tr>
+              <td>㈱SMBC信託銀行（退职金信托）</td>
+              <td>1.93%</td><td>—</td><td>1.93%</td>
+              <td class="flat">→</td>
+            </tr>
+            <tr>
+              <td>三井物産㈱</td>
+              <td>2.23%</td><td>2.23%</td><td><span class="badge badge-red">已售出</span></td>
+              <td class="down">↓↓</td>
+            </tr>
+            <tr>
+              <td>STATE STREET BANK AND TRUST COMPANY 505001</td>
+              <td>—</td><td>—</td><td>1.46%</td>
+              <td class="up">NEW</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">股东结构特点（FY2025）</div>
+        <div style="margin-top:10px;">
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>村上真之助（社长）</span><span>25.28%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill" style="width:25.28%;"></div></div>
+          </div>
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>丸紅株式会社</span><span>15.30%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill amber" style="width:15.30%;"></div></div>
+          </div>
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>マスタートラスト信托银行</span><span>7.34%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill green" style="width:7.34%;"></div></div>
+          </div>
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>NORTHERN TRUST CO.(AVFC) RE FIDELITY FUNDS</span><span>3.59%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill green" style="width:3.59%;"></div></div>
+          </div>
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>有限会社ファイブエム（村上家族）</span><span>3.44%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill" style="width:3.44%;"></div></div>
+          </div>
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>BBH FOR FIDELITY LOW-PRICED STOCK FUND</span><span>2.43%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill green" style="width:2.43%;"></div></div>
+          </div>
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>JP MORGAN CHASE BANK 385632</span><span>2.19%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill green" style="width:2.19%;"></div></div>
+          </div>
+          <div class="sh-bar-wrap">
+            <div class="sh-bar-label"><span>其他</span><span>40.43%</span></div>
+            <div class="sh-bar-track"><div class="sh-bar-fill" style="width:40.43%; background:#94a3b8;"></div></div>
+          </div>
+        </div>
+
+        <div class="note-box amber" style="margin-top:14px;">
+          <strong>近1年主要股东变化（FY2025）：</strong><br>
+          • 富达投信通过大量持股申报（2024年3月时点）申报持有<strong>约9.94%（3,208千股）</strong>（实际持有一部分经由信托账户无法确认）<br>
+          • 三井物産全部售出（FY2024前持有2.23%→消失）<br>
+          • STATE STREET BANK AND TRUST COMPANY 505001新进入排名（1.46%）<br>
+          • 村上社长800万股至8,000千股基本无变化（持续稳定持有）
+        </div>
+        <div class="note-box" style="margin-top:8px;">
+          <strong>创始家族合算持股比率：</strong><br>
+          村上真之助 25.28% ＋ 有限会社ファイブエム 3.44% ＝ <strong>28.72%</strong><br>
+          作为实质控股股东主导经营。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑧ 政策持股（交叉持股） -->
+  <div class="card" id="sec-securities">
+    <div class="card-title">⑧ 近3年 政策持股（交叉持股）变化</div>
+    <div class="grid2">
+      <div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>股票名称</th>
+              <th>持股数</th>
+              <th>账面价值（百万日元）</th>
+              <th>持股目的</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>伊藤ハム米久ホールディングス㈱</td><td>395,105股</td><td>1,471</td><td>强化交易关系</td></tr>
+            <tr><td>㈱ペッパーフードサービス</td><td>2,466,000股</td><td>399</td><td>强化交易关系</td></tr>
+            <tr><td>ワタミ㈱</td><td>300,000股</td><td>302</td><td>强化交易关系</td></tr>
+            <tr><td>エイチ・ツー・オーリテイリング㈱</td><td>99,737股</td><td>225</td><td>强化交易关系</td></tr>
+            <tr><td>ユナイテッド・スーパーマーケット・ホールディングス㈱</td><td>146,000股</td><td>113</td><td>强化交易关系</td></tr>
+            <tr><td>㈱G-7ホールディングス</td><td>40,000股</td><td>52</td><td>强化交易关系</td></tr>
+            <tr><td>SHINPO㈱</td><td>37,400股</td><td>46</td><td>强化交易关系</td></tr>
+            <tr><td>㈱あみやき亭</td><td>24,000股</td><td>38</td><td>强化交易关系</td></tr>
+            <tr><td>㈱三井住友フィナンシャルグループ</td><td>9,240股</td><td>35</td><td>促进金融往来</td></tr>
+            <tr><td>㈱ライフコーポレーション</td><td>13,263股</td><td>24</td><td>强化交易关系</td></tr>
+            <tr><td>㈱バローホールディングス</td><td>3,000股</td><td>6</td><td>强化交易关系</td></tr>
+            <tr class="total-row"><td>上市股票合计</td><td>—</td><td>2,716</td><td>—</td></tr>
+            <tr><td>未上市股票（5只）</td><td>—</td><td>94</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">近3年变化</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead>
+            <tr><th>财年</th><th>持股合计</th><th>主要变化</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>FY2023（2023.2期）</td><td>约3,000百万日元以上</td><td>持有三菱UFJ·三井物産·docomo等</td></tr>
+            <tr><td>FY2024（2024.2期）</td><td>缩减趋势</td><td>持续分阶段售出</td></tr>
+            <tr><td>FY2025（2025.2期）</td><td>2,716百万日元</td><td><span class="badge badge-red">三菱UFJ全部售出</span><br><span class="badge badge-red">三井物産全部售出</span></td></tr>
+          </tbody>
+        </table>
+        <div class="note-box" style="margin-top:10px;">
+          政策持股（交叉持股）余额持续缩减趋势。目的是通过持有主要客户·交易方（餐饮连锁、超市、肉类加工公司）股票来维护·强化交易关系。
+        </div>
+        <div class="note-box amber" style="margin-top:8px;">
+          <strong>投资有价证券账面价值：14,433百万日元（FY2025）</strong><br>
+          （除政策持股外含未上市股票·基金等）
+        </div>
+        <div class="insight">富达基金的库存股计算已排除。政策持股缩减是顺应公司治理要求（东证Prime标准）的举措。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑨ 土地资产 -->
+  <div class="card" id="sec-land">
+    <div class="card-title">⑨ 近3年 土地资产变化</div>
+    <div class="grid2">
+      <div>
+        <div class="section-label">主要资产设备（FY2025 2月末）</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead>
+            <tr><th>事业所（公司名）</th><th>土地面积(㎡)</th><th>土地账面价值（百万日元）</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>西宮总部·西宮工厂</td><td>5,381</td><td>392</td></tr>
+            <tr><td>姫路分公司（姫路肉类中心）</td><td>8,105</td><td>438</td></tr>
+            <tr><td>东京分公司·船橋工厂</td><td>31,086</td><td>2,366</td></tr>
+            <tr><td>西宮第二工厂</td><td>10,162</td><td>849</td></tr>
+            <tr><td>东京营业所等20处事业所</td><td>105,356</td><td>5,354</td></tr>
+            <tr><td>㈱北海道中央牧場</td><td>1,058,625</td><td>（4,649 合计）</td></tr>
+            <tr><td>AURORA PACKING COMPANY,INC.（美国伊利诺伊）</td><td>880,604</td><td>（29,501 合计）</td></tr>
+            <tr><td>FREMONT BEEF COMPANY（美国内布拉斯加）</td><td>35,660</td><td>（2,336 合计）</td></tr>
+            <tr><td>㈱フードリエ（栃木）</td><td>36,262</td><td>（3,666 合计）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">土地账面价值变化</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead>
+            <tr><th>财年</th><th>合并土地账面价值（百万日元）</th><th>变化</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>FY2023（2023.2期）</td><td>约15,000〜16,000</td><td>—</td></tr>
+            <tr><td>FY2024（2024.2期）</td><td>约16,500</td><td class="up">↑ 增加</td></tr>
+            <tr><td>FY2025（2025.2期）</td><td><strong>17,307</strong></td><td class="up">↑ 增加</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box" style="margin-top:10px;">
+          <strong>AURORA新工厂（在建工程）：28,358百万日元</strong><br>
+          2021年5月启动·总额321.6亿日元的大型投资。预计2025年内竣工。竣工后预定转入有形固定资产（建筑物·机械等）。
+        </div>
+        <div class="note-box amber" style="margin-top:8px;">
+          <strong>战略意义：</strong><br>
+          土地资产增加主要来自国内据点整备（船橋·首都圈强化）。美国含新工厂用地。北海道牧场持有逾100万㎡农地，是上游整合的基础。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑩ 主要客户·重要合同 -->
+  <div class="card" id="sec-customers">
+    <div class="card-title">⑩ 主要客户·供应商·重要合同变化</div>
+    <div class="grid2">
+      <div>
+        <div class="section-label">主要供应商</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead><tr><th>公司名称</th><th>交易种类</th><th>金额（百万日元）</th><th>关系</th></tr></thead>
+          <tbody>
+            <tr><td><strong>丸紅株式会社</strong></td><td>商品采购</td><td>43,230</td><td>第2大股东·关联公司</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-label" style="margin-top:14px;">主要客户・关联交易方（管理层关联公司等）</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead><tr><th>公司名称</th><th>所在地</th><th>交易金额（百万日元）</th><th>内容</th></tr></thead>
+          <tbody>
+            <tr><td>㈱平城苑</td><td>東京都足立区</td><td>2,098（营收）</td><td>餐厅·肉类销售方</td></tr>
+            <tr><td>㈱牛肉商但馬屋</td><td>兵庫県姫路市</td><td>1,278（营收）</td><td>肉类批发销售方</td></tr>
+            <tr><td>帝神志方ミート㈱</td><td>兵庫県加古川市</td><td>1,469（营收）233（采购）</td><td>肉类销售方兼供应商</td></tr>
+            <tr><td>㈱サンエム</td><td>兵庫県姫路市</td><td>473（营收）</td><td>肉类批发销售方</td></tr>
+            <tr><td>㈱萬蔵</td><td>京都市北区</td><td>327（营收）</td><td>餐厅·肉类销售方</td></tr>
+            <tr><td>㈱56フーズコーポレーション</td><td>福岡</td><td>263（营收）</td><td>肉类流通</td></tr>
+            <tr><td>㈱阿波どり</td><td>徳島県</td><td>101（采购）</td><td>养鸡业·供应商</td></tr>
+            <tr><td>㈱但馬どり</td><td>兵庫県豊岡市</td><td>126（采购）</td><td>养鸡业·供应商</td></tr>
+            <tr><td>㈱大山どり</td><td>鳥取県米子市</td><td>37（采购）</td><td>养鸡业·供应商</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="note-box" style="margin-top:0;">
+          <strong>主要客户补充说明：</strong><br>
+          不存在单一客户占营收10%以上（有价证券报告书判定无需披露）。<br>
+          主要客户广泛分散于餐饮连锁、超市、肉类批发商等。
+        </div>
+        <div class="note-box amber" style="margin-top:10px;">
+          <strong>重要合同·战略变化：</strong><br>
+          • <strong>与丸紅长期采购关系持续</strong>：年采购额432亿日元，承接美国工厂进口中介。供应商第一位兼股东的特殊关系。<br>
+          • <strong>关联方交易较多</strong>：与村上社长原集团企业（但馬屋·帝神志方ミート等）持续大规模交易。<br>
+          • <strong>向养鸡业采购扩大</strong>：与㈱阿波どり・㈱但馬どり・㈱大山どり的交易显示投资组合多样化。
+        </div>
+        <div class="section-label" style="margin-top:14px;">近3年变化趋势</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead><tr><th>年度</th><th>主要变化</th></tr></thead>
+          <tbody>
+            <tr><td>FY2023</td><td>新冠后餐饮需求恢复，面向餐饮连锁的销售增加</td></tr>
+            <tr><td>FY2024</td><td>国内肉类市况上涨，批发单价上升，营收增加</td></tr>
+            <tr><td>FY2025</td><td>美国牛肉市况恶化导致采购成本受压。加工食品业务正式入局，开拓新销路</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑪ 中期经营计划 -->
+  <div class="card" id="sec-mtplan">
+    <div class="card-title">⑪ 中期经营计划（2025年4月修订版）</div>
+    <div class="grid2">
+      <div>
+        <div class="section-label">数值目标</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead>
+            <tr>
+              <th>财年（会计年月）</th>
+              <th>营业收入（亿日元）</th>
+              <th>营业利润（亿日元）</th>
+              <th>经常利润（亿日元）</th>
+              <th>净利润（亿日元）</th>
+              <th>ROE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>FY2025（实绩）</td><td>4,445</td><td>51</td><td>64</td><td>27</td><td>2.2%</td></tr>
+            <tr><td>FY2026（计划）</td><td>4,750</td><td>75</td><td>85</td><td>45</td><td>3.7%</td></tr>
+            <tr><td>FY2027（计划）</td><td>5,700</td><td>100</td><td>110</td><td>70</td><td>5.7%</td></tr>
+            <tr class="total-row"><td>FY2028（最终目标）</td><td>6,000</td><td>150</td><td>160</td><td>102</td><td>8.0%</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box amber" style="margin-top:10px;">
+          <strong>长期目标：</strong>提出尽早实现合并营收5,000亿日元·经常利润200亿日元
+        </div>
+      </div>
+      <div>
+        <div class="section-label">计划修正背景与重要里程碑</div>
+        <div class="note-box" style="margin-top:8px;">
+          <strong>⚠️ 下调修正主因：</strong><br>
+          ① AURORA新工厂启动延迟与运营成本增加<br>
+          ② 美国牛肉市况改善延迟（活牛价格高涨）<br>
+          ③ 新西兰育肥业务面向中国销售低迷（业务重组中）
+        </div>
+        <div class="note-box green" style="margin-top:8px;">
+          <strong>复苏路径：</strong><br>
+          • FY2026.2期：AURORA新工厂竣工·开始投产<br>
+          • FY2027.2期：AURORA满负荷运营（产能2.5倍）→大幅增收增益<br>
+          • FY2028.2期：实现最终目标（ROE 8%）
+        </div>
+        <div class="section-label" style="margin-top:12px;">国内扩张计划</div>
+        <div style="font-size:12.5px; line-height:1.8; margin-top:6px;">
+          • 2023年：新设大阪营业所·日高肉类中心第2分切工厂<br>
+          • 2023年：加工食品业务正式入局<br>
+          • 2025年：强化首都圈营业·整备据点<br>
+          • 2026年：新设广岛营业所·整合扩充
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑫ Top5风险 -->
+  <div class="card" id="sec-risk">
+    <div class="card-title">⑫ Top5 业务风险</div>
+    <div class="risk-item">
+      <div class="risk-num">1</div>
+      <div class="risk-content">
+        <div class="risk-title">经济环境·消费趋势（国内外市场）</div>
+        <div class="risk-desc">日本·美国肉类市场规模波动、企业间竞争加剧风险。经济衰退时消费减少·餐饮低迷，影响全业务板块。</div>
+      </div>
+    </div>
+    <div class="risk-item">
+      <div class="risk-num">2</div>
+      <div class="risk-content">
+        <div class="risk-title">法律法规（通商·食品安全）</div>
+        <div class="risk-desc">海外肉类原材料采购相关通商·关税法规变更风险。国内食品安全法规强化。差价关税制度（尤其是保障措施启动）导致进口成本急增风险。</div>
+      </div>
+    </div>
+    <div class="risk-item">
+      <div class="risk-num">3</div>
+      <div class="risk-content">
+        <div class="risk-title">市况与汇率波动</div>
+        <div class="risk-desc">BSE·口蹄疫等疾病爆发导致肉类市况崩溃风险。汇率（尤其是美元兑日元）波动导致进口成本增减。美国牛肉市况周期性下跌（当前正处于该阶段）是最直接的利润压迫因素。</div>
+      </div>
+    </div>
+    <div class="risk-item">
+      <div class="risk-num">4</div>
+      <div class="risk-content">
+        <div class="risk-title">国际业务活动（地缘政治·海外业务风险）</div>
+        <div class="risk-desc">在美国（AURORA·FREMONT）、澳大利亚、新西兰、中南美、中国的采购·销售活动相关政治经济·法律监管·通商关系·自然条件风险。尤其是中国市场的不透明性及新西兰业务的重建。</div>
+      </div>
+    </div>
+    <div class="risk-item">
+      <div class="risk-num">5</div>
+      <div class="risk-content">
+        <div class="risk-title">食品安全·产品召回风险</div>
+        <div class="risk-desc">产品召回·产品责任赔偿风险，品牌信任下滑风险。肉类·内脏肉属于食品安全敏感品类，一旦出现问题可能对业绩产生重大影响。</div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <strong>汇率敏感度：</strong>营收约12%来自美国（美元结算）。日元贬值对利润略有正面影响（采购也多为美国产），但美国牛肉原价同时上升，因此净效果有限。<br>
+      <strong>原材料依赖：</strong>通过丸紅大量依赖美国·澳大利亚产牛肉。收益受牛群周期（约10年）左右。<br>
+      <strong>地缘政治暴露：</strong>美国工厂（AURORA·FREMONT）是收益核心，受美国食品安全法规及劳动法变更影响较大。
+    </div>
+  </div>
+
+  <!-- ⑬ 资本变动·股东回馈 -->
+  <div class="card" id="sec-capital">
+    <div class="card-title">⑬ 近3年 资本变动·⑭ 股东回馈</div>
+    <div class="grid2">
+      <div>
+        <div class="section-label">资本变动（增资·股票分割·库存股等）</div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead><tr><th>年月日</th><th>内容</th><th>已发行股数</th><th>注册资本</th></tr></thead>
+          <tbody>
+            <tr><td>2006年1月16日</td><td>新股预约权行使</td><td>变更为32,267,721股</td><td>4,298百万日元</td></tr>
+            <tr><td>2006年〜至今</td><td><strong>无变化</strong></td><td>32,267,721股（固定）</td><td>4,298百万日元</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box green" style="margin-top:10px;">
+          2006年以后，增资·股票分割·股票合并完全无变化。<br>
+          库存股持有: 617千股（占已发行股的1.91%）
+        </div>
+        <div class="insight">近3年（FY2023〜FY2025）无资本变动（增发、股票分割、合并等）。维持财务保守姿态。库存股与分红政策DOE 3%目标一致，实施稳定的资本管理。</div>
+      </div>
+      <div>
+        <div class="section-label">股东回馈（近3年变化）</div>
+        <div class="note-box amber" style="margin-top:8px;">
+          <strong>股东优待制度有无：</strong><br>
+          有价证券报告书（FY2023〜FY2025）中未确认到股东优待制度的记载。<br><br>
+          エスフーズ未设立正式的股东优待制度，或制度已变更·废止。<br><br>
+          <strong>分红政策（替代方案）：</strong><br>
+          • 以合并股东资本分红率（DOE）3%为目标进行稳定的利润回馈<br>
+          • FY2023〜FY2025年度分红为<strong>89日元/股</strong>，连续3年同额<br>
+          • 分红支付率：FY2023 26.6% → FY2024 31.0% → FY2025 42.2%（随利润减少而上升）
+        </div>
+        <table class="data-table" style="margin-top:10px;">
+          <thead><tr><th>财年</th><th>中期分红</th><th>年末分红</th><th>全年合计</th><th>分红支付率</th></tr></thead>
+          <tbody>
+            <tr><td>FY2023（2023.2期）</td><td>44日元</td><td>45日元</td><td>89日元</td><td>26.6%</td></tr>
+            <tr><td>FY2024（2024.2期）</td><td>44日元</td><td>45日元</td><td>89日元</td><td>31.0%</td></tr>
+            <tr><td>FY2025（2025.2期）</td><td>44日元</td><td>45日元</td><td>89日元</td><td>42.2%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <div style="text-align:center; color:var(--muted); font-size:12px; padding:20px 0;">
+    数据来源：エスフーズ㈱ 有价证券报告书（2023〜2025年2月期）·中期经营计划（2025年4月修订版）·EDINET<br>
+    制作日期：2026年4月13日｜※本资料仅供信息整理之用，不构成投资建议。
+  </div>
+
+</div><!-- /main -->
+</body>
+</html>
