@@ -21,6 +21,16 @@
   --nav-h:  60px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+.insight {
+  margin-top: 14px;
+  padding: 9px 14px 9px 14px;
+  background: #f8faff;
+  border-left: 3px solid #1a56db;
+  border-radius: 0 6px 6px 0;
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.7;
+}
 body {
   font-family: 'Noto Sans JP', sans-serif;
   background: var(--bg);
@@ -215,6 +225,7 @@ footer {
   </div>
   <div class="card-body">
     <div id="chart-candle"></div>
+    <p class="insight">💡 株価は過去10年で¥800〜¥2,500のレンジ内を推移し、現在¥1,666は中間水準。業績回復局面にも関わらずPBR0.23xの低評価が続いており、市場は収益力の構造的改善をまだ織り込んでいない。</p>
   </div>
 </div>
 
@@ -226,6 +237,7 @@ footer {
   </div>
   <div class="card-body">
     <canvas id="chart-perf" height="90"></canvas>
+    <p class="insight">💡 売上高は500〜600億円台で安定するが、営業利益はコスト構造の硬直性により19/03の54.6億→21/03の5.5億へ急落、22〜23/03は純損失を計上。25/03に18.7億まで回復したものの、利益率はピーク比で半分以下に留まる。売上規模の維持だけでは収益力の本格回復は困難で、固定費削減と高付加価値製品へのシフトが課題。</p>
   </div>
 </div>
 
@@ -237,6 +249,7 @@ footer {
   </div>
   <div class="card-body">
     <canvas id="chart-margin" height="90"></canvas>
+    <p class="insight">💡 営業利益率は19/03の9.1%をピークに25/03は3.3%まで低下、ROEも2.99%と資本コストを大幅に下回る。低ROEが継続する限りPBR1倍割れは正当化されるため、利益率の構造的回復こそが株価再評価の最重要トリガー。</p>
   </div>
 </div>
 
@@ -344,6 +357,7 @@ footer {
         </tbody>
       </table>
     </div>
+    <p class="insight">💡 PBR0.23x・EV/EBITDA2.45xはいずれも歴史的低水準で資産割安感は顕著。ただしROE低迷が継続する場合はバリュートラップのリスクがあり、利益率改善の進捗確認が投資判断の鍵。PER（有効年）の中央値は約6〜7倍台と製造業平均を大幅に下回る。</p>
   </div>
 </div>
 
@@ -369,6 +383,7 @@ footer {
         </tbody>
       </table>
     </div>
+    <p class="insight">💡 BPSは10年で+44%増（3,134→4,517円）と着実な資産蓄積が続く。26/03Eは増配（50→85円）予定で株主還元強化の姿勢を示すが、自社株買いはほぼ皆無に近く、DOEは1%台と依然低水準。配当性向を安定させるには本業利益率の持続的改善が不可欠。</p>
   </div>
 </div>
 
@@ -396,6 +411,7 @@ footer {
         </tbody>
       </table>
     </div>
+    <p class="insight">💡 時価総額（95億）が流動資産－流動負債（161億）を大幅に下回るグレアム式「ネットネット株」水準。投資有価証券を加えた修正NCAとの比率は0.43xまで低下しており、理論上は解散価値を大きく下回る価格で取引されている。清算余剰の顕在化には経営効率改善または政策保有株の売却が鍵となる。</p>
   </div>
 </div>
 
@@ -407,6 +423,7 @@ footer {
   </div>
   <div class="card-body">
     <canvas id="chart-debt" height="90"></canvas>
+    <p class="insight">💡 有利子負債は158億（16/03）→139億（25/03）へ漸減し、現金115億を差し引いたネット有利子負債は24億と実質無借金に近い水準。財務余力は十分あり、FCFの改善が続けば追加の株主還元や成長投資への振り向けが可能。</p>
   </div>
 </div>
 
@@ -419,6 +436,7 @@ footer {
   <div class="card-body">
     <canvas id="chart-turn" height="90"></canvas>
     <p style="margin-top:8px;font-size:12px;color:var(--muted);">比率 = 残高 ÷ 売上原価 (小さいほど回転が早い)</p>
+    <p class="insight">💡 売掛金回転比率は0.422（16/03）→0.313（25/03）へ改善し、回収効率は向上。一方、棚卸資産比率は25/03に0.284と直近10年で最高水準に近く、需要鈍化による在庫積み上がりの兆候が見られる。在庫コントロールの改善が今後のコスト低減と利益率改善につながる余地がある。</p>
   </div>
 </div>
 
@@ -430,6 +448,7 @@ footer {
   </div>
   <div class="card-body">
     <canvas id="chart-cf" height="90"></canvas>
+    <p class="insight">💡 営業CFは10年連続プラス（31〜76億）で安定したキャッシュ創出力を維持。25/03のFCFは34.2億と大幅回復し、設備投資を賄いながら有利子負債削減・配当支払いを両立。22〜23/03の赤字期もFCFは辛うじてプラスを維持しており、キャッシュフロー面での底堅さは評価できる。</p>
   </div>
 </div>
 
@@ -514,6 +533,7 @@ footer {
         </tbody>
       </table>
     </div>
+    <p class="insight">💡 FY26/03はQ3累計で営業利益進捗率91.2%、純利益は100.5%に達し通期着地はほぼ確定。ただしQ1に大型一時利益（持分法等）が集中しており、本業ベースの進捗は保守的に見る必要がある。26/03Eの増配（85円）予定は下値サポート要因として評価できる。</p>
   </div>
 </div>
 
@@ -654,6 +674,7 @@ footer {
         <div style="color:#64748b;font-size:10px;">139－115（現金）</div>
       </div>
     </div>
+    <p class="insight">💡 自己資本比率50.9%・ネット有利子負債24億と財務健全性は高く、ダウンサイドリスクは限定的。固定資産の34%を占める投資有価証券（100億）は政策保有株とみられ、売却・縮減が進めば資本効率の改善と株主還元強化の原資となり得る。流動比率163%で短期支払能力も問題なし。</p>
 
   </div>
 </div>
@@ -666,6 +687,7 @@ footer {
   </div>
   <div class="card-body">
     <div id="chart-wf"></div>
+    <p class="insight">💡 売上573億に対し売上総利益は約114億（粗利率約20%）と製造業としてやや低水準。営業外損益（持分法利益・受取配当等）が純利益を下支えする構造が続いており、25/03の純利益12.5億は本業だけでは説明できない。本業利益率（営業利益率3.3%）の持続的改善が中長期の株価再評価に向けた最重要課題。</p>
   </div>
 </div>
 
